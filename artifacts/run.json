@@ -56,9 +56,93 @@
     "verification": {
       "reference": "tests/fixtures/reference_metrics.csv",
       "absolute_tolerance": 1e-09
+    },
+    "period_comparison": {
+      "download_start": "2017-01-01",
+      "download_end": "2026-08-08",
+      "samples": {
+        "2017-2021": {
+          "start": "2017-01-01",
+          "end": "2021-12-31"
+        },
+        "2022-2026": {
+          "start": "2022-01-01",
+          "end": "2026-08-07"
+        }
+      },
+      "universes": {
+        "technology": [
+          "AAPL",
+          "ADBE",
+          "AMD",
+          "AMZN",
+          "CRM",
+          "CSCO",
+          "GOOGL",
+          "IBM",
+          "INTC",
+          "META",
+          "MSFT",
+          "NVDA",
+          "ORCL",
+          "QCOM",
+          "TXN"
+        ],
+        "financial": [
+          "AFL",
+          "AIG",
+          "ALL",
+          "AXP",
+          "C",
+          "CB",
+          "CME",
+          "GS",
+          "JPM",
+          "MET",
+          "MS",
+          "PNC",
+          "PRU",
+          "SCHW",
+          "USB"
+        ],
+        "energy": [
+          "APA",
+          "COP",
+          "CVX",
+          "DVN",
+          "EOG",
+          "FANG",
+          "HAL",
+          "KMI",
+          "MPC",
+          "OXY",
+          "PSX",
+          "SLB",
+          "VLO",
+          "WMB",
+          "XOM"
+        ],
+        "uk_external": [
+          "AZN.L",
+          "HSBA.L",
+          "BP.L",
+          "ULVR.L",
+          "GSK.L",
+          "DGE.L",
+          "RIO.L",
+          "BATS.L",
+          "LSEG.L",
+          "REL.L",
+          "NG.L",
+          "VOD.L",
+          "BARC.L",
+          "LLOY.L",
+          "TSCO.L"
+        ]
+      }
     }
   },
-  "config_sha256": "e7c61c0e1763d7970a31af9d888ce343bdff4fc660263806ebffc554f5bb3e9a",
+  "config_sha256": "daf2ba646264c69e61226e4441aa4dc200d2daa96871919f10615eb3ec735673",
   "python": "3.14.7",
   "packages": {
     "numpy": "2.5.4",

@@ -11,3 +11,4 @@ artifacts/daily_returns.parquet
 artifacts/holdings.parquet
 .env
 .local_tools/
+artifacts/period_comparison/daily_returns.parquet

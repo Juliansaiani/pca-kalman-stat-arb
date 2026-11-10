@@ -1,0 +1,227 @@
+{
+  "samples": [
+    {
+      "sample": "2017-2021",
+      "start": "2018-07-09",
+      "end": "2021-12-31",
+      "zero_exposure_rows": 0
+    },
+    {
+      "sample": "2022-2026",
+      "start": "2023-07-11",
+      "end": "2026-08-07",
+      "zero_exposure_rows": 0
+    }
+  ],
+  "prices": [
+    {
+      "universe": "technology",
+      "tickers": [
+        "AAPL",
+        "ADBE",
+        "AMD",
+        "AMZN",
+        "CRM",
+        "CSCO",
+        "GOOGL",
+        "IBM",
+        "INTC",
+        "META",
+        "MSFT",
+        "NVDA",
+        "ORCL",
+        "QCOM",
+        "TXN"
+      ],
+      "sha256": "2da61be71549ee05852d0312a880b446a93926df757e6ebe37aef7bf58d93af9",
+      "first_date": "2017-01-03",
+      "last_date": "2026-08-07",
+      "observations": 2412
+    },
+    {
+      "universe": "financial",
+      "tickers": [
+        "AFL",
+        "AIG",
+        "ALL",
+        "AXP",
+        "C",
+        "CB",
+        "CME",
+        "GS",
+        "JPM",
+        "MET",
+        "MS",
+        "PNC",
+        "PRU",
+        "SCHW",
+        "USB"
+      ],
+      "sha256": "a98b31d7f7ebbac8796e6efa084ceeed76132b18c2a2c0e49568a04555105bfa",
+      "first_date": "2017-01-03",
+      "last_date": "2026-08-07",
+      "observations": 2412
+    },
+    {
+      "universe": "energy",
+      "tickers": [
+        "APA",
+        "COP",
+        "CVX",
+        "DVN",
+        "EOG",
+        "FANG",
+        "HAL",
+        "KMI",
+        "MPC",
+        "OXY",
+        "PSX",
+        "SLB",
+        "VLO",
+        "WMB",
+        "XOM"
+      ],
+      "sha256": "18b4d1e01ae1fe421f124cee25398a794db2766669848e70b2431a179353f9c3",
+      "first_date": "2017-01-03",
+      "last_date": "2026-08-07",
+      "observations": 2412
+    },
+    {
+      "universe": "uk_external",
+      "tickers": [
+        "AZN.L",
+        "HSBA.L",
+        "BP.L",
+        "ULVR.L",
+        "GSK.L",
+        "DGE.L",
+        "RIO.L",
+        "BATS.L",
+        "LSEG.L",
+        "REL.L",
+        "NG.L",
+        "VOD.L",
+        "BARC.L",
+        "LLOY.L",
+        "TSCO.L"
+      ],
+      "sha256": "0309df2e0c2d23208553ce5563f6936e49285d981316565cbc66432ce8d4911e",
+      "first_date": "2017-01-03",
+      "last_date": "2026-08-07",
+      "observations": 2420
+    }
+  ],
+  "model": {
+    "lookback": 126,
+    "refit_every": 10,
+    "variance_fraction": 0.55,
+    "q_fixed": 0.0001,
+    "q_grid": [
+      0,
+      0.0001,
+      0.01
+    ],
+    "r_grid": [
+      1
+    ],
+    "calibration_fraction": 0.6666666666666666
+  },
+  "portfolio": {
+    "residual_history": 252,
+    "pressure_days": 5,
+    "signal_vol_days": 20,
+    "rebalance_every": 20,
+    "names_per_side": 3,
+    "risk_window": 20,
+    "position_cap": 0.25
+  },
+  "cost_bps": [
+    0,
+    5,
+    10,
+    20
+  ],
+  "python": "3.14.7",
+  "packages": {
+    "numpy": "2.5.4",
+    "pandas": "3.1.1",
+    "yfinance": "1.8.0"
+  },
+  "price_request": {
+    "download_start": "2017-01-01",
+    "download_end": "2026-08-08",
+    "universes": {
+      "technology": [
+        "AAPL",
+        "ADBE",
+        "AMD",
+        "AMZN",
+        "CRM",
+        "CSCO",
+        "GOOGL",
+        "IBM",
+        "INTC",
+        "META",
+        "MSFT",
+        "NVDA",
+        "ORCL",
+        "QCOM",
+        "TXN"
+      ],
+      "financial": [
+        "AFL",
+        "AIG",
+        "ALL",
+        "AXP",
+        "C",
+        "CB",
+        "CME",
+        "GS",
+        "JPM",
+        "MET",
+        "MS",
+        "PNC",
+        "PRU",
+        "SCHW",
+        "USB"
+      ],
+      "energy": [
+        "APA",
+        "COP",
+        "CVX",
+        "DVN",
+        "EOG",
+        "FANG",
+        "HAL",
+        "KMI",
+        "MPC",
+        "OXY",
+        "PSX",
+        "SLB",
+        "VLO",
+        "WMB",
+        "XOM"
+      ],
+      "uk_external": [
+        "AZN.L",
+        "HSBA.L",
+        "BP.L",
+        "ULVR.L",
+        "GSK.L",
+        "DGE.L",
+        "RIO.L",
+        "BATS.L",
+        "LSEG.L",
+        "REL.L",
+        "NG.L",
+        "VOD.L",
+        "BARC.L",
+        "LLOY.L",
+        "TSCO.L"
+      ]
+    }
+  },
+  "evaluation": "Two inspected historical samples. Choosing the better sample afterwards is selection, not independent validation.",
+  "accounting": "lagged constant target weights; rebalance turnover only; no weight-drift trades",
+  "source": "Yahoo Finance through yfinance"
+}

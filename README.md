@@ -42,4 +42,3 @@ The first run downloads 2017–2025 prices through `yfinance`; later runs use th
 Start with [the executed notebook](notebooks/research.ipynb). Reusable code is in `src/equity_stat_arb/`, experiment settings in [config.json](config.json), and metrics, calibration choices and figures in `artifacts/`. Raw prices and environments are excluded from Git. Tests check causality, PCA recovery, batched filtering, capped allocations and holdings accounting.
 
 Code: [MIT](LICENSE). Market data comes from [Yahoo Finance](https://finance.yahoo.com/) and has separate usage terms.
-

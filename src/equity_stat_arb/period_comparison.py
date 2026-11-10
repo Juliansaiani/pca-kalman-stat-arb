@@ -1,4 +1,4 @@
-"""Two matched-calendar experiments, plotted only while positions are active."""
+"""Matched-calendar historical study, plotted only while positions are active."""
 import hashlib
 import importlib.metadata
 import json
@@ -81,10 +81,12 @@ def chart(daily, output, start, end):
     matplotlib.use('Agg')
     import matplotlib.pyplot as plt
     import matplotlib.dates as mdates
-    selected = daily[(daily.cost_bps == 10) & daily.variant.isin([
-        'Fixed Kalman / equal', 'Calibrated Kalman / inverse vol'])]
-    labels = {'Fixed Kalman / equal': 'Reference: fixed Kalman',
-              'Calibrated Kalman / inverse vol': 'Calibrated Kalman + risk sizing'}
+    selected = daily[daily.cost_bps == 10].copy()
+    labels = {'PCA / equal': 'PCA, equal weights',
+              'Fixed Kalman / equal': 'Fixed Kalman, equal weights',
+              'Calibrated Kalman / equal': 'Calibrated Kalman, equal weights',
+              'Fixed Kalman / inverse vol': 'Fixed Kalman, risk sizing',
+              'Calibrated Kalman / inverse vol': 'Calibrated Kalman, risk sizing'}
     wealth = selected.groupby(['universe', 'variant'], sort=False).net_return.transform(lambda s: (1 + s).cumprod())
     selected = selected.assign(wealth=wealth)
     low, high = min(1, selected.wealth.min()), max(1, selected.wealth.max())
@@ -103,9 +105,9 @@ def chart(daily, output, start, end):
         ax.grid(alpha=.2)
         ax.spines[['top', 'right']].set_visible(False)
     handles, names = axes[0, 0].get_legend_handles_labels()
-    fig.legend(handles, names, loc='lower center', ncol=2, frameon=False)
+    fig.legend(handles, names, loc='lower center', ncol=3, frameon=False, fontsize=8)
     fig.suptitle(f'Active trading only | {start.date()} to {end.date()} | 10 bps', fontsize=14)
-    fig.tight_layout(rect=(0, .05, 1, .95))
+    fig.tight_layout(rect=(0, .08, 1, .95))
     fig.savefig(output, dpi=150)
     plt.close(fig)
 
@@ -144,7 +146,7 @@ def run(root):
                 'python': platform.python_version(),
                 'packages': {name: importlib.metadata.version(name) for name in ('numpy', 'pandas', 'yfinance')},
                 'price_request': {key: request[key] for key in ('download_start', 'download_end', 'universes')},
-                'evaluation': 'Two inspected historical samples. Choosing the better sample afterwards is selection, not independent validation.',
+                'evaluation': 'Historical sample retained after comparing periods; not independent validation or evidence of stability across regimes.',
                 'accounting': config['accounting'], 'source': 'Yahoo Finance through yfinance'}
     (output / 'run.json').write_text(json.dumps(manifest, indent=2), encoding='utf-8')
     print(summary[(summary.cost_bps == 10) & summary.variant.isin([

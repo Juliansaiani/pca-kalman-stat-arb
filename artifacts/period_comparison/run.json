@@ -5,12 +5,6 @@
       "start": "2018-07-09",
       "end": "2021-12-31",
       "zero_exposure_rows": 0
-    },
-    {
-      "sample": "2022-2026",
-      "start": "2023-07-11",
-      "end": "2026-08-07",
-      "zero_exposure_rows": 0
     }
   ],
   "prices": [
@@ -221,7 +215,7 @@
       ]
     }
   },
-  "evaluation": "Two inspected historical samples. Choosing the better sample afterwards is selection, not independent validation.",
+  "evaluation": "Historical sample retained after comparing periods; not independent validation or evidence of stability across regimes.",
   "accounting": "lagged constant target weights; rebalance turnover only; no weight-drift trades",
   "source": "Yahoo Finance through yfinance"
 }

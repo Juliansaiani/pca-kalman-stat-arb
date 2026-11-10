@@ -43,4 +43,3 @@ Start with [the executed notebook](notebooks/research.ipynb). Reusable code is i
 
 Code: [MIT](LICENSE). Market data comes from [Yahoo Finance](https://finance.yahoo.com/) and has separate usage terms.
 
-Also: [Order-book volatility forecasting](https://github.com/julian5422/order-book-volatility-forecasting).

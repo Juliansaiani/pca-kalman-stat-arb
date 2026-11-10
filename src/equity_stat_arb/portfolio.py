@@ -1,4 +1,4 @@
-"""Residual ranks, capped risk sizing and holdings-based portfolio accounting."""
+"""Residual ranks, capped risk sizing and constant-target-weight accounting."""
 import numpy as np
 import pandas as pd
 
@@ -53,32 +53,28 @@ def decision_weights(residuals, raw_returns, config, risk_sizing=False):
 
 
 def simulate(returns, orders, cost_bps):
-    """Apply orders one observation later; shares drift between scheduled trades.
+    """Reproduce the archived daily target-weight approximation.
 
-    Costs are paid from cash. Borrow/financing and intraday execution are absent.
-    Neutrality and caps apply at rebalancing, not continuously between trades.
+    Targets carry forward, then shift one day. Costs count only changes in those
+    targets. Weight-maintenance trades and share drift are deliberately omitted;
+    this is a simplified research convention, not an execution simulation.
     """
     if not returns.index.equals(orders.index) or not returns.columns.equals(orders.columns):
         raise ValueError('Orders and returns must align')
     if not np.isfinite(cost_bps) or cost_bps < 0 or not np.isfinite(returns.to_numpy()).all():
         raise ValueError('Invalid cost or returns')
-    x, targets = returns.to_numpy(), orders.to_numpy()
-    weights = np.zeros(x.shape[1])
-    nav, history, held = 1.0, [], []
-    for t, changes in enumerate(x):
-        turnover = 0.0
-        if t and np.isfinite(targets[t - 1]).all():
-            turnover = float(np.abs(targets[t - 1] - weights).sum())
-            weights = targets[t - 1].copy()
-        held.append(weights.copy())
-        gross = float(weights @ changes)
-        fees = turnover * cost_bps / 10000
-        net = gross - fees
-        if 1 + net <= 0:
-            raise ValueError('Portfolio NAV became non-positive')
-        nav *= 1 + net
-        history.append((gross, fees, net, turnover, nav, weights.sum(), np.abs(weights).sum()))
-        weights = weights * (1 + changes) / (1 + net)
-    daily = pd.DataFrame(history, index=returns.index,
-                         columns=['gross_return', 'cost', 'net_return', 'turnover', 'equity', 'net_exposure', 'gross_exposure'])
-    return daily, pd.DataFrame(held, index=returns.index, columns=returns.columns)
+    carried = orders.ffill().shift(1).fillna(0.0).to_numpy()
+    exposure = np.abs(carried).sum(axis=1)
+    weights = np.divide(carried, exposure[:, None], out=np.zeros_like(carried),
+                        where=exposure[:, None] > 0)
+    traded = np.abs(np.diff(weights, axis=0, prepend=np.zeros((1, weights.shape[1])))).sum(axis=1)
+    gross = (weights * returns.to_numpy()).sum(axis=1)
+    fees = traded * cost_bps / 10000
+    net = gross - fees
+    if np.any(net <= -1):
+        raise ValueError('Portfolio NAV became non-positive')
+    daily = pd.DataFrame({'gross_return': gross, 'cost': fees, 'net_return': net,
+                          'turnover': traded, 'equity': np.cumprod(1 + net),
+                          'net_exposure': weights.sum(axis=1),
+                          'gross_exposure': np.abs(weights).sum(axis=1)}, index=returns.index)
+    return daily, pd.DataFrame(weights, index=returns.index, columns=returns.columns)

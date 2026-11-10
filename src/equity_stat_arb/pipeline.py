@@ -1,4 +1,4 @@
-"""Rebuild the equity study from the configured price snapshot."""
+"""Reproduce the archived experiment with an independently implemented model."""
 import argparse
 import hashlib
 import importlib.metadata
@@ -9,7 +9,7 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-from .data import load_prices
+from .data import load_returns
 from .models import fit_residual_models
 from .portfolio import decision_weights, simulate
 
@@ -19,116 +19,128 @@ def score(returns):
     if not len(values):
         return {'days': 0, 'sharpe': np.nan, 'cagr': np.nan, 'max_drawdown': np.nan}
     wealth = np.r_[1.0, np.cumprod(1 + values)]
-    standard_deviation = values.std(ddof=1) if len(values) > 1 else 0
+    volatility = values.std(ddof=1) if len(values) > 1 else 0
     return {'days': len(values),
-            'sharpe': values.mean() / standard_deviation * np.sqrt(252) if standard_deviation > 0 else np.nan,
+            'sharpe': values.mean() / volatility * np.sqrt(252) if volatility else np.nan,
             'cagr': wealth[-1] ** (252 / len(values)) - 1,
             'max_drawdown': (wealth / np.maximum.accumulate(wealth) - 1).min()}
 
 
-def analyze(returns, config, trading_start=None):
+def analyze(returns, config):
     residuals, diagnostics = fit_residual_models(returns, config['model'])
-    portfolio = config['portfolio']
-    aligned = returns.loc[next(iter(residuals.values())).index]
-    variants = {'PCA / equal': ('PCA', False),
-                'Fixed Kalman / equal': ('Fixed Kalman', False),
-                'Calibrated Kalman / equal': ('Calibrated Kalman', False),
-                'Fixed Kalman / inverse vol': ('Fixed Kalman', True),
-                'Calibrated Kalman / inverse vol': ('Calibrated Kalman', True)}
-    start = trading_start or aligned.index[portfolio['residual_history'] + 1]
-    metrics, daily, holding_frames = [], [], []
-    for variant, (model, risk_sizing) in variants.items():
-        orders = decision_weights(residuals[model], aligned, portfolio, risk_sizing)
+    aligned = returns.loc[residuals['PCA'].index]
+    choices = {'PCA / equal': ('PCA', False), 'Fixed Kalman / equal': ('Fixed Kalman', False),
+               'Calibrated Kalman / equal': ('Calibrated Kalman', False),
+               'Fixed Kalman / inverse vol': ('Fixed Kalman', True),
+               'Calibrated Kalman / inverse vol': ('Calibrated Kalman', True)}
+    summaries, daily_frames, holdings = [], [], []
+    for variant, (model, risk_sizing) in choices.items():
+        orders = decision_weights(residuals[model], aligned, config['portfolio'], risk_sizing)
         for cost in config['cost_bps']:
-            result, holdings = simulate(aligned, orders, cost)
-            result = result.loc[start:]
-            periods = {'development': result.index < config['evaluation']['validation_start'],
-                       'validation': (result.index >= config['evaluation']['validation_start']) & (result.index < config['evaluation']['holdout_start']),
-                       'holdout': result.index >= config['evaluation']['holdout_start'],
-                       'all': np.ones(len(result), dtype=bool)}
-            for period, mask in periods.items():
-                sub = result.loc[mask]
-                metrics.append({'variant': variant, 'cost_bps': cost, 'period': period,
-                                **score(sub.net_return), 'average_daily_turnover': sub.turnover.mean(),
-                                'average_gross_exposure': sub.gross_exposure.mean()})
-            daily.append(result.reset_index().rename(columns={result.index.name or 'index': 'date'}).assign(variant=variant, cost_bps=cost))
+            result, held = simulate(aligned, orders, cost)
+            summaries.append({'variant': variant, 'cost_bps': cost, **score(result.net_return),
+                              'trading_sample_sharpe': score(result.net_return.iloc[config['portfolio']['residual_history'] + 1:])['sharpe'],
+                              'average_daily_turnover': result.turnover.mean(),
+                              'max_weight': held.abs().to_numpy().max(),
+                              'max_absolute_net_exposure': result.net_exposure.abs().max()})
+            daily_frames.append(result.rename_axis('date').reset_index().assign(variant=variant, cost_bps=cost))
             if cost == 10:
-                holding_frames.append(holdings.loc[start:].reset_index().rename(columns={holdings.index.name or 'index': 'date'}).assign(variant=variant))
-    return pd.DataFrame(metrics), pd.concat(daily, ignore_index=True), diagnostics, pd.concat(holding_frames, ignore_index=True)
+                holdings.append(held.rename_axis('date').reset_index().assign(variant=variant))
+    return (pd.DataFrame(summaries), pd.concat(daily_frames, ignore_index=True), diagnostics,
+            pd.concat(holdings, ignore_index=True))
 
 
-def figures(daily, output, test_start):
+def verify_reference(actual, expected, tolerance=1e-9):
+    keys = ['universe', 'variant', 'cost_bps']
+    if actual.duplicated(keys).any() or expected.duplicated(keys).any():
+        raise ValueError('Reference comparison keys must be unique')
+    compared = actual.merge(expected, on=keys, how='outer', suffixes=('_new', '_reference'), indicator=True)
+    if not compared['_merge'].eq('both').all():
+        raise AssertionError('Reference and computed result rows differ')
+    columns = ['days', 'sharpe', 'cagr', 'max_drawdown', 'trading_sample_sharpe',
+               'average_daily_turnover', 'max_weight', 'max_absolute_net_exposure']
+    report = compared[keys].copy()
+    for metric in columns:
+        error = (compared[f'{metric}_new'] - compared[f'{metric}_reference']).abs()
+        report[f'{metric}_absolute_error'] = error
+        if not np.isfinite(error).all() or error.max() > tolerance:
+            raise AssertionError(f'Reference mismatch: {metric}, largest error={error.max()}')
+    return report
+
+
+def figures(daily, output):
     import matplotlib
     matplotlib.use('Agg')
     import matplotlib.pyplot as plt
     import matplotlib.dates as mdates
-    chosen = daily[daily.cost_bps == 10]
-    names = chosen.universe.unique()
-    fig, axes = plt.subplots(2, 2, figsize=(12, 8), squeeze=False)
-    for ax, universe in zip(axes.flat, names):
-        for variant, group in chosen[chosen.universe == universe].groupby('variant', sort=False):
-            wealth = (1 + group.net_return).cumprod()
-            ax.plot(pd.to_datetime(group.date), wealth, label=variant, lw=1.2)
-        ax.axvline(pd.Timestamp(test_start), color='#777777', lw=.8, ls=':')
+    selected = daily[daily.cost_bps == 10]
+    fig, axes = plt.subplots(2, 2, figsize=(12, 8))
+    for ax, universe in zip(axes.flat, selected.universe.unique()):
+        for variant, group in selected[selected.universe == universe].groupby('variant', sort=False):
+            ax.plot(pd.to_datetime(group.date), (1 + group.net_return).cumprod(), label=variant, lw=1.3)
         ax.set_title(universe.replace('_', ' ').title())
         ax.set_ylabel('Growth of 1')
-        ax.xaxis.set_major_locator(mdates.YearLocator(2))
+        ax.xaxis.set_major_locator(mdates.YearLocator())
         ax.xaxis.set_major_formatter(mdates.DateFormatter('%Y'))
         ax.grid(alpha=.2)
         ax.spines[['top', 'right']].set_visible(False)
         ax.legend(fontsize=6.5)
-    fig.suptitle('Equity residual reversal | 10 bps per unit turnover', fontsize=15)
+    fig.suptitle('Frozen-sample residual reversal | 10 bps per unit turnover', fontsize=15)
     fig.tight_layout()
     fig.savefig(output / 'overview.png', dpi=150)
     plt.close(fig)
 
 
-def run(root, refresh=False):
+def run(root, verify=False):
     root = Path(root).resolve()
     settings_path = root / 'config.json'
     config = json.loads(settings_path.read_text(encoding='utf-8'))
-    prices, snapshot = load_prices(root, config['data'], refresh)
-    panels = {name: frame.pct_change(fill_method=None).dropna() for name, frame in prices.items()}
-    # Compare the same evaluation dates despite different exchange holidays/history starts.
-    warmup = config['model']['lookback'] + config['portfolio']['residual_history'] + 1
-    common_start = max(frame.index[warmup] for frame in panels.values())
-    rows, days, calibrations, holdings = [], [], [], []
-    for name, returns in panels.items():
-        print(f'Evaluating {name}', flush=True)
-        metrics, daily, diagnostics, held = analyze(returns, config, common_start)
-        for frame in (metrics, daily, diagnostics, held):
-            frame.insert(0, 'universe', name)
-        rows.append(metrics); days.append(daily); calibrations.append(diagnostics); holdings.append(held)
-    metrics = pd.concat(rows, ignore_index=True)
-    daily = pd.concat(days, ignore_index=True)
+    panels, sources = load_returns(root, config['data'])
+    scores, frames, calibration, holdings = [], [], [], []
+    for universe, observations in panels.items():
+        print(f'Evaluating {universe}', flush=True)
+        summary, daily, diagnostics, held = analyze(observations, config)
+        for frame in (summary, daily, diagnostics, held):
+            frame.insert(0, 'universe', universe)
+        scores.append(summary); frames.append(daily); calibration.append(diagnostics); holdings.append(held)
+    summary = pd.concat(scores, ignore_index=True)
+    daily = pd.concat(frames, ignore_index=True)
+    comparison = None
+    if verify:
+        reference = pd.read_csv(root / config['verification']['reference'])
+        comparison = verify_reference(summary, reference, config['verification']['absolute_tolerance'])
+        print(f'Reference verified: {len(comparison)} rows, 8 measures per row.', flush=True)
     output = root / 'artifacts'
     output.mkdir(parents=True, exist_ok=True)
-    metrics.to_csv(output / 'metrics.csv', index=False)
-    pd.concat(calibrations, ignore_index=True).to_csv(output / 'calibration.csv', index=False)
+    summary.to_csv(output / 'metrics.csv', index=False)
+    pd.concat(calibration, ignore_index=True).to_csv(output / 'calibration.csv', index=False)
     daily.to_parquet(output / 'daily_returns.parquet', index=False)
     pd.concat(holdings, ignore_index=True).to_parquet(output / 'holdings.parquet', index=False)
-    figures(daily, output, config['evaluation']['holdout_start'])
+    if comparison is not None:
+        comparison.to_csv(output / 'verification.csv', index=False)
+    figures(daily, output)
     manifest = {'config': config, 'config_sha256': hashlib.sha256(settings_path.read_bytes()).hexdigest(),
                 'python': platform.python_version(),
-                'packages': {p: importlib.metadata.version(p) for p in ('numpy', 'pandas', 'matplotlib', 'pyarrow', 'yfinance')},
-                'snapshot': snapshot, 'evaluation_start': str(common_start.date()),
-                'evaluation': 'Rolling models with past-only Q/R likelihood selection. Specifications fixed before this implementation first evaluated 2025. The historical test overlaps previously explored market periods and is not a pristine research holdout. All five variants reported without choosing a test winner.',
-                'limitations': ['Current hand-picked universes, not point-in-time membership',
-                                'Daily-close execution proxy, no intraday fills',
-                                'No borrow availability, financing or market impact',
-                                'Neutrality and caps apply at rebalances only',
-                                'One-year holdout is too short to establish a persistent edge']}
+                'packages': {p: importlib.metadata.version(p) for p in ('numpy', 'pandas', 'matplotlib', 'pyarrow')},
+                'data': sources, 'reference_verified': comparison is not None,
+                'evaluation': 'Previously inspected historical panels; no new holdout. Panel periods differ.',
+                'accounting': 'Constant daily target weights with one-day lag. Costs on target-weight changes only; holding drift and maintenance turnover are omitted.',
+                'limitations': ['Not a self-financing execution simulation',
+                                'Stock-selection and survivorship bias possible',
+                                'No borrow fees, financing, short availability or impact',
+                                'Dollar neutral, not factor neutral',
+                                'Headline metrics include the archived initial flat period']}
     (output / 'run.json').write_text(json.dumps(manifest, indent=2) + '\n', encoding='utf-8')
-    print(metrics[(metrics.period == 'holdout') & (metrics.cost_bps == 10)][['universe', 'variant', 'days', 'sharpe', 'cagr', 'max_drawdown']].round(4).to_string(index=False))
+    print(summary[summary.cost_bps == 10][['universe', 'variant', 'sharpe', 'cagr', 'max_drawdown']].round(6).to_string(index=False))
     return manifest
 
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--root', type=Path, default=Path.cwd())
-    parser.add_argument('--refresh-data', action='store_true')
+    parser.add_argument('--verify', action='store_true', help='Fail if any frozen reference measure differs')
     args = parser.parse_args()
-    run(args.root, args.refresh_data)
+    run(args.root, args.verify)
 
 
 if __name__ == '__main__':

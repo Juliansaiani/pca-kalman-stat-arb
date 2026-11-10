@@ -11,3 +11,4 @@ jobs:
       - run: python -m pip install -r requirements.txt
       - run: python -m pip install -e '.[dev]'
       - run: python -m pytest -q
+      - run: python -m equity_stat_arb.pipeline --verify

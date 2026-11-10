@@ -39,7 +39,7 @@ def test_ranking_is_disjoint_and_risk_sizing_uses_strictly_past_prices():
     assert orders.iloc[:40].isna().all().all()
 
 
-def test_execution_lag_cost_and_share_drift_match_hand_calculation():
+def test_execution_lag_and_target_costs_match_hand_calculation():
     index = pd.bdate_range('2020-01-01', periods=3)
     returns = pd.DataFrame([[0, 0], [.1, 0], [.1, 0]], index=index)
     orders = pd.DataFrame([[.5, -.5], [np.nan, np.nan], [np.nan, np.nan]], index=index)
@@ -47,8 +47,8 @@ def test_execution_lag_cost_and_share_drift_match_hand_calculation():
     assert daily.iloc[0].net_return == 0
     assert daily.iloc[1].cost == pytest.approx(.001)
     assert daily.iloc[2].turnover == 0
-    assert held.iloc[2, 0] == pytest.approx(.55 / 1.049)
-    assert daily.iloc[-1].equity == pytest.approx(1.104)
+    assert held.iloc[2, 0] == pytest.approx(.5)
+    assert daily.iloc[-1].equity == pytest.approx(1.049 * 1.05)
 
 
 def test_no_orders_stay_flat_and_first_loss_enters_drawdown():

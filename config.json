@@ -1,12 +1,24 @@
 {
   "data": {
-    "start": "2017-01-01",
-    "end": "2026-01-01",
-    "universes": {
-      "technology": ["AAPL", "MSFT", "NVDA", "AMD", "INTC", "CSCO", "ORCL", "IBM", "ADBE", "CRM", "QCOM", "TXN", "AMAT", "MU", "AVGO"],
-      "financials": ["JPM", "BAC", "WFC", "C", "GS", "MS", "USB", "PNC", "TFC", "BNY", "SCHW", "AXP", "COF", "BLK", "MET"],
-      "energy": ["XOM", "CVX", "COP", "EOG", "SLB", "HAL", "BKR", "OXY", "VLO", "MPC", "PSX", "KMI", "WMB", "OKE", "DVN"],
-      "uk_equities": ["AZN.L", "SHEL.L", "BP.L", "HSBA.L", "BARC.L", "LLOY.L", "NWG.L", "GSK.L", "ULVR.L", "DGE.L", "NG.L", "SSE.L", "RIO.L", "BATS.L", "TSCO.L"]
+    "repository": "b-enh/pca-stat-arb",
+    "revision": "6a24304205318de080b019e74ac766e7cdb18ff6",
+    "panels": {
+      "technology": {
+        "path": "data/returns.csv",
+        "sha256": "2f7f82322063042c3b70a63a1ad27e545bc2dd0037a94f78b1267e8c6c7fc5c7"
+      },
+      "financial": {
+        "path": "version_2/data/discovery/financial_returns.csv",
+        "sha256": "eea13a72252de3b709f04986e1fcbfad1ad9033eb24bceddfa962bb432ea6eaf"
+      },
+      "energy": {
+        "path": "version_2/data/discovery/energy_returns.csv",
+        "sha256": "7c1fc81c17af769b57a8ca09e8887089fedbdb3880a2e92754fe8f182f22b4e4"
+      },
+      "uk_external": {
+        "path": "version_2/data/external_uk_2017_2021/returns.csv",
+        "sha256": "e3a7b01a7fb98be02c1b07fdcba51b97567d0e194f1578cec03ecc379cc86365"
+      }
     }
   },
   "model": {
@@ -14,8 +26,14 @@
     "refit_every": 10,
     "variance_fraction": 0.55,
     "q_fixed": 0.0001,
-    "q_grid": [0, 0.000001, 0.00001, 0.0001, 0.001, 0.01, 0.1],
-    "r_grid": [0.5, 1, 2],
+    "q_grid": [
+      0,
+      0.0001,
+      0.01
+    ],
+    "r_grid": [
+      1
+    ],
     "calibration_fraction": 0.6666666666666666
   },
   "portfolio": {
@@ -27,9 +45,15 @@
     "risk_window": 20,
     "position_cap": 0.25
   },
-  "cost_bps": [0, 5, 10, 20],
-  "evaluation": {
-    "validation_start": "2023-01-01",
-    "holdout_start": "2025-01-01"
+  "cost_bps": [
+    0,
+    5,
+    10,
+    20
+  ],
+  "accounting": "lagged constant target weights; rebalance turnover only; no weight-drift trades",
+  "verification": {
+    "reference": "tests/fixtures/reference_metrics.csv",
+    "absolute_tolerance": 1e-09
   }
 }

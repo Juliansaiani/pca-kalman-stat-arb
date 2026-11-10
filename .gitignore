@@ -10,3 +10,4 @@ dist/
 artifacts/daily_returns.parquet
 artifacts/holdings.parquet
 .env
+.local_tools/

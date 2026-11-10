@@ -1,0 +1,35 @@
+{
+  "data": {
+    "start": "2017-01-01",
+    "end": "2026-01-01",
+    "universes": {
+      "technology": ["AAPL", "MSFT", "NVDA", "AMD", "INTC", "CSCO", "ORCL", "IBM", "ADBE", "CRM", "QCOM", "TXN", "AMAT", "MU", "AVGO"],
+      "financials": ["JPM", "BAC", "WFC", "C", "GS", "MS", "USB", "PNC", "TFC", "BNY", "SCHW", "AXP", "COF", "BLK", "MET"],
+      "energy": ["XOM", "CVX", "COP", "EOG", "SLB", "HAL", "BKR", "OXY", "VLO", "MPC", "PSX", "KMI", "WMB", "OKE", "DVN"],
+      "uk_equities": ["AZN.L", "SHEL.L", "BP.L", "HSBA.L", "BARC.L", "LLOY.L", "NWG.L", "GSK.L", "ULVR.L", "DGE.L", "NG.L", "SSE.L", "RIO.L", "BATS.L", "TSCO.L"]
+    }
+  },
+  "model": {
+    "lookback": 126,
+    "refit_every": 10,
+    "variance_fraction": 0.55,
+    "q_fixed": 0.0001,
+    "q_grid": [0, 0.000001, 0.00001, 0.0001, 0.001, 0.01, 0.1],
+    "r_grid": [0.5, 1, 2],
+    "calibration_fraction": 0.6666666666666666
+  },
+  "portfolio": {
+    "residual_history": 252,
+    "pressure_days": 5,
+    "signal_vol_days": 20,
+    "rebalance_every": 20,
+    "names_per_side": 3,
+    "risk_window": 20,
+    "position_cap": 0.25
+  },
+  "cost_bps": [0, 5, 10, 20],
+  "evaluation": {
+    "validation_start": "2023-01-01",
+    "holdout_start": "2025-01-01"
+  }
+}

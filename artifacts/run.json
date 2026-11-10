@@ -1,0 +1,324 @@
+{
+  "config": {
+    "data": {
+      "start": "2017-01-01",
+      "end": "2026-01-01",
+      "universes": {
+        "technology": [
+          "AAPL",
+          "MSFT",
+          "NVDA",
+          "AMD",
+          "INTC",
+          "CSCO",
+          "ORCL",
+          "IBM",
+          "ADBE",
+          "CRM",
+          "QCOM",
+          "TXN",
+          "AMAT",
+          "MU",
+          "AVGO"
+        ],
+        "financials": [
+          "JPM",
+          "BAC",
+          "WFC",
+          "C",
+          "GS",
+          "MS",
+          "USB",
+          "PNC",
+          "TFC",
+          "BNY",
+          "SCHW",
+          "AXP",
+          "COF",
+          "BLK",
+          "MET"
+        ],
+        "energy": [
+          "XOM",
+          "CVX",
+          "COP",
+          "EOG",
+          "SLB",
+          "HAL",
+          "BKR",
+          "OXY",
+          "VLO",
+          "MPC",
+          "PSX",
+          "KMI",
+          "WMB",
+          "OKE",
+          "DVN"
+        ],
+        "uk_equities": [
+          "AZN.L",
+          "SHEL.L",
+          "BP.L",
+          "HSBA.L",
+          "BARC.L",
+          "LLOY.L",
+          "NWG.L",
+          "GSK.L",
+          "ULVR.L",
+          "DGE.L",
+          "NG.L",
+          "SSE.L",
+          "RIO.L",
+          "BATS.L",
+          "TSCO.L"
+        ]
+      }
+    },
+    "model": {
+      "lookback": 126,
+      "refit_every": 10,
+      "variance_fraction": 0.55,
+      "q_fixed": 0.0001,
+      "q_grid": [
+        0,
+        1e-06,
+        1e-05,
+        0.0001,
+        0.001,
+        0.01,
+        0.1
+      ],
+      "r_grid": [
+        0.5,
+        1,
+        2
+      ],
+      "calibration_fraction": 0.6666666666666666
+    },
+    "portfolio": {
+      "residual_history": 252,
+      "pressure_days": 5,
+      "signal_vol_days": 20,
+      "rebalance_every": 20,
+      "names_per_side": 3,
+      "risk_window": 20,
+      "position_cap": 0.25
+    },
+    "cost_bps": [
+      0,
+      5,
+      10,
+      20
+    ],
+    "evaluation": {
+      "validation_start": "2023-01-01",
+      "holdout_start": "2025-01-01"
+    }
+  },
+  "config_sha256": "584bdbb6bdf410afe1682791db88f764e77615158c97bab421aacc7a18350100",
+  "python": "3.14.7",
+  "packages": {
+    "numpy": "2.5.4",
+    "pandas": "3.1.1",
+    "matplotlib": "3.11.2",
+    "pyarrow": "26.0.1",
+    "yfinance": "1.8.0"
+  },
+  "snapshot": {
+    "provider": "Yahoo Finance through yfinance",
+    "auto_adjust": true,
+    "request": {
+      "start": "2017-01-01",
+      "end": "2026-01-01",
+      "universes": {
+        "technology": [
+          "AAPL",
+          "MSFT",
+          "NVDA",
+          "AMD",
+          "INTC",
+          "CSCO",
+          "ORCL",
+          "IBM",
+          "ADBE",
+          "CRM",
+          "QCOM",
+          "TXN",
+          "AMAT",
+          "MU",
+          "AVGO"
+        ],
+        "financials": [
+          "JPM",
+          "BAC",
+          "WFC",
+          "C",
+          "GS",
+          "MS",
+          "USB",
+          "PNC",
+          "TFC",
+          "BNY",
+          "SCHW",
+          "AXP",
+          "COF",
+          "BLK",
+          "MET"
+        ],
+        "energy": [
+          "XOM",
+          "CVX",
+          "COP",
+          "EOG",
+          "SLB",
+          "HAL",
+          "BKR",
+          "OXY",
+          "VLO",
+          "MPC",
+          "PSX",
+          "KMI",
+          "WMB",
+          "OKE",
+          "DVN"
+        ],
+        "uk_equities": [
+          "AZN.L",
+          "SHEL.L",
+          "BP.L",
+          "HSBA.L",
+          "BARC.L",
+          "LLOY.L",
+          "NWG.L",
+          "GSK.L",
+          "ULVR.L",
+          "DGE.L",
+          "NG.L",
+          "SSE.L",
+          "RIO.L",
+          "BATS.L",
+          "TSCO.L"
+        ]
+      }
+    },
+    "files": [
+      {
+        "universe": "technology",
+        "file": "data/technology_prices.csv",
+        "sha256": "b176a954c570b60eb5c3d1cfb59d97f1ea9f44b82174bc5245b271b699358f35",
+        "downloaded_utc": "2026-11-10T17:23:06.674252+00:00",
+        "tickers": [
+          "AAPL",
+          "MSFT",
+          "NVDA",
+          "AMD",
+          "INTC",
+          "CSCO",
+          "ORCL",
+          "IBM",
+          "ADBE",
+          "CRM",
+          "QCOM",
+          "TXN",
+          "AMAT",
+          "MU",
+          "AVGO"
+        ],
+        "observations": 2262,
+        "first_date": "2017-01-03",
+        "last_date": "2025-12-31",
+        "minimum_raw_coverage": 1.0
+      },
+      {
+        "universe": "financials",
+        "file": "data/financials_prices.csv",
+        "sha256": "acf49d0eb08d7d52675d5fc437684abe3833bc80d751127d034e2e91a607454e",
+        "downloaded_utc": "2026-11-10T17:23:08.342794+00:00",
+        "tickers": [
+          "JPM",
+          "BAC",
+          "WFC",
+          "C",
+          "GS",
+          "MS",
+          "USB",
+          "PNC",
+          "TFC",
+          "BNY",
+          "SCHW",
+          "AXP",
+          "COF",
+          "BLK",
+          "MET"
+        ],
+        "observations": 2262,
+        "first_date": "2017-01-03",
+        "last_date": "2025-12-31",
+        "minimum_raw_coverage": 1.0
+      },
+      {
+        "universe": "energy",
+        "file": "data/energy_prices.csv",
+        "sha256": "4350ef876fe0ed9370d59447d03172c4314141c5b807105aec76d2915cae2c96",
+        "downloaded_utc": "2026-11-10T17:23:10.168936+00:00",
+        "tickers": [
+          "XOM",
+          "CVX",
+          "COP",
+          "EOG",
+          "SLB",
+          "HAL",
+          "BKR",
+          "OXY",
+          "VLO",
+          "MPC",
+          "PSX",
+          "KMI",
+          "WMB",
+          "OKE",
+          "DVN"
+        ],
+        "observations": 2262,
+        "first_date": "2017-01-03",
+        "last_date": "2025-12-31",
+        "minimum_raw_coverage": 1.0
+      },
+      {
+        "universe": "uk_equities",
+        "file": "data/uk_equities_prices.csv",
+        "sha256": "426d172a07c282df4dba72132581038f8e59ac0a6b4662ee6a2143d5912121b6",
+        "downloaded_utc": "2026-11-10T17:23:12.691680+00:00",
+        "tickers": [
+          "AZN.L",
+          "SHEL.L",
+          "BP.L",
+          "HSBA.L",
+          "BARC.L",
+          "LLOY.L",
+          "NWG.L",
+          "GSK.L",
+          "ULVR.L",
+          "DGE.L",
+          "NG.L",
+          "SSE.L",
+          "RIO.L",
+          "BATS.L",
+          "TSCO.L"
+        ],
+        "observations": 2270,
+        "first_date": "2017-01-03",
+        "last_date": "2025-12-31",
+        "minimum_raw_coverage": 0.9995600527936648
+      }
+    ]
+  },
+  "evaluation_start": "2018-07-09",
+  "evaluation": "Rolling models with past-only Q/R likelihood selection. Specifications fixed before this implementation first evaluated 2025. The historical test overlaps previously explored market periods and is not a pristine research holdout. All five variants reported without choosing a test winner.",
+  "limitations": [
+    "Current hand-picked universes, not point-in-time membership",
+    "Daily-close execution proxy, no intraday fills",
+    "No borrow availability, financing or market impact",
+    "Neutrality and caps apply at rebalances only",
+    "One-year holdout is too short to establish a persistent edge"
+  ]
+}

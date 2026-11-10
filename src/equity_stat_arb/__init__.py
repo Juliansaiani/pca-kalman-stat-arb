@@ -1,0 +1,1 @@
+"""Equity factor-residual research."""

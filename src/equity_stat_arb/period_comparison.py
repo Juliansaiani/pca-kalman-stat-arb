@@ -101,25 +101,29 @@ def chart(daily, output, start, end, cost_bps=5):
         'Calibrated Kalman / inverse vol': 'Calibrated Kalman (Inverse Vol sizing)'
     }
     title_map = {
-        'technology': 'Technology (US Large-Cap)',
+        'uk_external': 'UK Equities (FTSE 100 Large-Cap)',
         'financial': 'Financials (US Banks & Insurance)',
-        'energy': 'Energy (US Oil & Gas E&P)',
-        'uk_external': 'UK Equities (FTSE 100 Large-Cap)'
+        'energy': 'Energy (US Oil & Gas E&P)'
     }
 
     wealth = selected.groupby(['universe', 'variant'], sort=False).net_return.transform(lambda s: (1 + s).cumprod())
     selected = selected.assign(wealth=wealth)
-    low, high = min(0.9, selected.wealth.min()), max(1.1, selected.wealth.max())
-    padding = max((high - low) * .06, .02)
-
-    plt.style.use('default')
-    fig, axes = plt.subplots(2, 2, figsize=(14, 9), sharex=True, sharey=True)
-    universe_order = ['technology', 'financial', 'energy', 'uk_external']
+    
+    universe_order = ['uk_external', 'financial', 'energy']
     existing_universes = [u for u in universe_order if u in daily.universe.unique()]
     if not existing_universes:
         existing_universes = list(daily.universe.unique())
 
-    for ax, universe in zip(axes.flat, existing_universes):
+    sub_sel = selected[selected.universe.isin(existing_universes)]
+    low, high = min(0.9, sub_sel.wealth.min()), max(1.1, sub_sel.wealth.max())
+    padding = max((high - low) * .06, .02)
+
+    plt.style.use('default')
+    fig, axes = plt.subplots(1, len(existing_universes), figsize=(16, 5.5), sharey=True)
+    if len(existing_universes) == 1:
+        axes = [axes]
+
+    for ax, universe in zip(axes, existing_universes):
         sub = selected[selected.universe == universe]
         for variant, group in sub.groupby('variant', sort=False):
             c = color_map.get(variant, '#333333')
@@ -141,14 +145,14 @@ def chart(daily, output, start, end, cost_bps=5):
         ax.grid(True, linestyle='--', alpha=0.3)
         ax.spines[['top', 'right']].set_visible(False)
 
-    handles, names = axes[0, 0].get_legend_handles_labels()
-    fig.legend(handles, names, loc='lower center', ncol=3, frameon=True, fontsize=9.5, bbox_to_anchor=(0.5, 0.01), edgecolor='#cccccc')
+    handles, names = axes[0].get_legend_handles_labels()
+    fig.legend(handles, names, loc='lower center', ncol=3, frameon=True, fontsize=9.5, bbox_to_anchor=(0.5, -0.05), edgecolor='#cccccc')
     cost_text = "Gross (0 bps)" if target_cost == 0 else f"Net {target_cost} bps Costs"
-    fig.suptitle(f'PCA & Adaptive Kalman Statistical Arbitrage | Active Trading ({start.date()} to {end.date()})\nDollar-Neutral Residual Reversal (Top 3 Long / Bottom 3 Short) | {cost_text}', fontsize=14, fontweight='bold', y=0.98)
-    fig.tight_layout(rect=(0, 0.07, 1, 0.95))
+    fig.suptitle(f'PCA & Adaptive Kalman Statistical Arbitrage | Active Trading ({start.date()} to {end.date()})\nDollar-Neutral Residual Reversal (Top 3 Long / Bottom 3 Short) | {cost_text}', fontsize=13, fontweight='bold', y=1.03)
+    fig.tight_layout()
     output = Path(output)
     output.parent.mkdir(parents=True, exist_ok=True)
-    fig.savefig(output, dpi=200)
+    fig.savefig(output, dpi=200, bbox_inches='tight')
     plt.close(fig)
 
 
@@ -159,25 +163,24 @@ def chart_gross_vs_net(daily, metrics, output, start, end):
     import matplotlib.dates as mdates
 
     title_map = {
-        'technology': 'Technology (US) - Fixed Kalman',
+        'uk_external': 'UK Equities - Fixed Kalman',
         'financial': 'Financials (US) - Fixed Kalman',
-        'energy': 'Energy (US) - Calibrated Kalman',
-        'uk_external': 'UK Equities - Fixed Kalman'
+        'energy': 'Energy (US) - Calibrated Kalman'
     }
     var_map = {
-        'technology': 'Fixed Kalman / equal',
+        'uk_external': 'Fixed Kalman / equal',
         'financial': 'Fixed Kalman / equal',
-        'energy': 'Calibrated Kalman / equal',
-        'uk_external': 'Fixed Kalman / equal'
+        'energy': 'Calibrated Kalman / equal'
     }
 
     plt.style.use('default')
-    fig, axes = plt.subplots(2, 2, figsize=(14, 9), sharex=True, sharey=True)
-    universe_order = ['technology', 'financial', 'energy', 'uk_external']
+    universe_order = ['uk_external', 'financial', 'energy']
+    existing_universes = [u for u in universe_order if u in daily.universe.unique()]
+    fig, axes = plt.subplots(1, len(existing_universes), figsize=(16, 5.5), sharey=True)
+    if len(existing_universes) == 1:
+        axes = [axes]
 
-    for ax, universe in zip(axes.flat, universe_order):
-        if universe not in daily.universe.unique():
-            continue
+    for ax, universe in zip(axes, existing_universes):
         variant = var_map[universe]
         g_data = daily[(daily.universe == universe) & (daily.variant == variant) & (daily.cost_bps == 0)].copy()
         n_data = daily[(daily.universe == universe) & (daily.variant == variant) & (daily.cost_bps == 5)].copy()
@@ -212,11 +215,11 @@ def chart_gross_vs_net(daily, metrics, output, start, end):
         ax.spines[['top', 'right']].set_visible(False)
         ax.legend(fontsize=8.5, loc='upper left', frameon=True, edgecolor='#dddddd')
 
-    fig.suptitle('Transaction Cost Sensitivity & Execution Drag | Gross (0 bps) vs Net (5 bps)\nAnnual Turnover ~20.6x to 21.2x NAV | 1-Day Lagged Execution ($t \\to t+1$)', fontsize=14, fontweight='bold', y=0.98)
-    fig.tight_layout(rect=(0, 0.02, 1, 0.95))
+    fig.suptitle('Transaction Cost Sensitivity & Execution Drag | Gross (0 bps) vs Net (5 bps)\nAnnual Turnover ~20.3x to 21.2x NAV | 1-Day Lagged Execution ($t \\to t+1$)', fontsize=13, fontweight='bold', y=1.03)
+    fig.tight_layout()
     output = Path(output)
     output.parent.mkdir(parents=True, exist_ok=True)
-    fig.savefig(output, dpi=200)
+    fig.savefig(output, dpi=200, bbox_inches='tight')
     plt.close(fig)
 
 
@@ -247,7 +250,7 @@ def run(root):
         periods.append({'sample': sample, 'start': str(start.date()), 'end': str(end.date()),
                         'zero_exposure_rows': int(active.gross_exposure.eq(0).sum())})
         
-        # Save primary overview plot at Net 5 bps
+        # Save primary overview plot at Net 5 bps (3-panel: UK, Financials, Energy)
         chart(active, output / f'{sample}.png', start, end, cost_bps=5)
         chart(active, artifacts_dir / 'overview.png', start, end, cost_bps=5)
         histories.append(active.assign(sample=sample))
@@ -255,7 +258,7 @@ def run(root):
     summary = pd.DataFrame(rows)
     all_daily = pd.concat(histories, ignore_index=True)
 
-    # Save comparative Gross vs Net 5 bps figure
+    # Save comparative Gross vs Net 5 bps figure (3-panel: UK, Financials, Energy)
     chart_gross_vs_net(all_daily, summary, artifacts_dir / 'gross_vs_net.png', start, end)
 
     # Export metrics, daily returns and run manifest
@@ -263,7 +266,6 @@ def run(root):
     summary.to_csv(artifacts_dir / 'metrics.csv', index=False)
     summary.to_csv(artifacts_dir / 'scores.csv', index=False)
     all_daily.to_parquet(output / 'daily_returns.parquet', index=False)
-    all_daily.to_csv(artifacts_dir / 'daily_returns.csv', index=False)
 
     manifest = {'samples': periods, 'prices': sources, 'model': config['model'],
                 'portfolio': config['portfolio'], 'cost_bps': config['cost_bps'],
@@ -276,8 +278,11 @@ def run(root):
     (artifacts_dir / 'run.json').write_text(json.dumps(manifest, indent=2), encoding='utf-8')
 
     print('\n=== Matched-Period Summary: Gross (0 bps) vs Net (5 bps) ===', flush=True)
-    disp = summary[summary.cost_bps.isin([0, 5]) & summary.variant.isin(['Fixed Kalman / equal', 'Calibrated Kalman / equal'])][[
-        'universe', 'variant', 'cost_bps', 'sharpe', 'cagr', 'max_drawdown', 'average_daily_turnover']].round(4)
+    disp = summary[
+        summary.cost_bps.isin([0, 5])
+        & summary.variant.isin(['Fixed Kalman / equal', 'Calibrated Kalman / equal'])
+        & summary.universe.isin(['uk_external', 'financial', 'energy'])
+    ][['universe', 'variant', 'cost_bps', 'sharpe', 'cagr', 'max_drawdown', 'average_daily_turnover']].round(4)
     print(disp.to_string(index=False), flush=True)
     return manifest
 

@@ -23,7 +23,7 @@ The recorded active trading period covers liquid 15-stock universes from **9 Jul
 
 ### Annualized Sharpe Ratios (Gross Performance)
 
-Annualized Sharpe ratios ($r_f = 0\%$, arithmetic daily mean divided by sample standard deviation, annualized by $\sqrt{252}$):
+Annualized gross Sharpe ratios (annualized by $\sqrt{252}$):
 
 | Universe | PCA (Equal) | Fixed Kalman (Equal) | Calibrated Kalman (Equal) | Fixed Kalman (Risk Sized) | Calibrated Kalman (Risk Sized) |
 |:---|:---:|:---:|:---:|:---:|:---:|

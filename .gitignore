@@ -7,8 +7,9 @@ __pycache__/
 .ipynb_checkpoints/
 build/
 dist/
-artifacts/daily_returns.parquet
-artifacts/holdings.parquet
+artifacts/*.parquet
+artifacts/period_comparison/*.parquet
+artifacts/daily_returns.csv
 .env
 .local_tools/
-artifacts/period_comparison/daily_returns.parquet
+scratch/

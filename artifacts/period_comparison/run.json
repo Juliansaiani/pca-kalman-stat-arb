@@ -27,7 +27,7 @@
         "QCOM",
         "TXN"
       ],
-      "sha256": "2da61be71549ee05852d0312a880b446a93926df757e6ebe37aef7bf58d93af9",
+      "sha256": "050398577449227d5474d05034b6b98237e92ec5c47659b6afb609b695eec331",
       "first_date": "2017-01-03",
       "last_date": "2026-08-07",
       "observations": 2412
@@ -51,7 +51,7 @@
         "SCHW",
         "USB"
       ],
-      "sha256": "a98b31d7f7ebbac8796e6efa084ceeed76132b18c2a2c0e49568a04555105bfa",
+      "sha256": "35d3c384e1e228f24bf2a10e35cf00b05906418c68f88ead61c9458ac4d4b267",
       "first_date": "2017-01-03",
       "last_date": "2026-08-07",
       "observations": 2412
@@ -75,7 +75,7 @@
         "WMB",
         "XOM"
       ],
-      "sha256": "18b4d1e01ae1fe421f124cee25398a794db2766669848e70b2431a179353f9c3",
+      "sha256": "8fa8c6649db73bd45394edb52dc833a94559f1654e9c9f1192389b8f7ce43f5b",
       "first_date": "2017-01-03",
       "last_date": "2026-08-07",
       "observations": 2412
@@ -99,7 +99,7 @@
         "LLOY.L",
         "TSCO.L"
       ],
-      "sha256": "0309df2e0c2d23208553ce5563f6936e49285d981316565cbc66432ce8d4911e",
+      "sha256": "8d01ca2c596aca859d459d4ce6d3b76ac2d2c27fa5941dda1fb69b2fb97ecdef",
       "first_date": "2017-01-03",
       "last_date": "2026-08-07",
       "observations": 2420
@@ -215,7 +215,7 @@
       ]
     }
   },
-  "evaluation": "Historical sample retained after comparing periods; not independent validation or evidence of stability across regimes.",
+  "evaluation": "Historical matched calendar bounds (2018-07-09 to 2021-12-31); evaluated at Gross (0 bps) and Net (5 bps) execution costs.",
   "accounting": "lagged constant target weights; rebalance turnover only; no weight-drift trades",
   "source": "Yahoo Finance through yfinance"
 }

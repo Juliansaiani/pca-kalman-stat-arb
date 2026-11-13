@@ -134,7 +134,7 @@ A negative residual deviation triggers a positive mean-reversion target, anticip
 - **Risk Parity Sizing:** Under the risk-sized variant, capital is allocated inversely proportional to trailing 20-day asset return volatility, subject to a strict single-stock concentration cap of $\le 25\%$ NAV:
 
 $$
-w_i = \operatorname{sgn}(S_i) \cdot \min\left(0.25, \, 0.50 \cdot \frac{\sigma_{i}^{-1}}{\sum_{j \in \mathrm{side}} \sigma_{j}^{-1}}\right)
+w_i = \mathrm{sgn}(S_i) \cdot \min\left(0.25, \, 0.50 \cdot \frac{\sigma_{i}^{-1}}{\sum_{j \in \mathrm{side}} \sigma_{j}^{-1}}\right)
 $$
 
 - **Execution Lag & Drift Accounting:** Target weights generated at close $t$ are executed at $t+1$. Transaction fees apply to target turnover: $\mathrm{Fee}_t = \mathrm{cost\_bps} \cdot \sum_i |w_{i,t} - w_{i,t-1}|$.

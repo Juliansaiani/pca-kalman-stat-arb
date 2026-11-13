@@ -73,37 +73,71 @@ In high-turnover statistical arbitrage strategies, rigorous transaction cost acc
 
 ### 1. Statistical Factor Model via Rolling Correlation PCA
 Asset returns $r_t \in \mathbb{R}^N$ over a rolling window of $L = 126$ trading days are standardized by trailing volatility:
-$$r_{i,t}^{std} = \frac{r_{i,t} - \mu_{i,t}}{\sigma_{i,t}}$$
-The sample correlation matrix $C_t = \frac{1}{L} \sum_{\tau=0}^{L-1} r_{t-\tau}^{std} (r_{t-\tau}^{std})^\top$ is decomposed via spectral decomposition:
-$$C_t = V_t \Lambda_t V_t^\top$$
+
+$$
+r_{i,t}^{\mathrm{std}} = \frac{r_{i,t} - \mu_{i,t}}{\sigma_{i,t}}
+$$
+
+The sample correlation matrix $C_t = \frac{1}{L} \sum_{\tau=0}^{L-1} r_{t-\tau}^{\mathrm{std}} (r_{t-\tau}^{\mathrm{std}})^\top$ is decomposed via spectral decomposition:
+
+$$
+C_t = V_t \Lambda_t V_t^\top
+$$
+
 The model selects the leading $K$ eigenvectors explaining at least 55% of aggregate variance ($\sum_{k=1}^K \lambda_k / \sum_{j=1}^N \lambda_j \ge 0.55$). Latent statistical factor returns are given by:
-$$f_t = V_{K,t}^\top r_t^{std}$$
+
+$$
+f_t = V_{K,t}^\top r_t^{\mathrm{std}}
+$$
 
 ### 2. Dynamic State-Space Tracking via Kalman Filter
 To allow asset factor exposures (betas) to evolve adaptively over time, the relationship between standardized returns and latent factors is formulated as a linear Gaussian state-space model:
-- **State Transition Equation:**
-  $$\beta_{i,t} = \beta_{i,t-1} + \omega_{i,t}, \quad \omega_{i,t} \sim \mathcal{N}(0, Q_t)$$
-- **Measurement Equation:**
-  $$r_{i,t}^{std} = f_t^\top \beta_{i,t} + v_{i,t}, \quad v_{i,t} \sim \mathcal{N}(0, R_t)$$
+
+**State Transition Equation:**
+
+$$
+\beta_{i,t} = \beta_{i,t-1} + \omega_{i,t}, \quad \omega_{i,t} \sim \mathcal{N}(0, Q_t)
+$$
+
+**Measurement Equation:**
+
+$$
+r_{i,t}^{\mathrm{std}} = f_t^\top \beta_{i,t} + v_{i,t}, \quad v_{i,t} \sim \mathcal{N}(0, R_t)
+$$
 
 The idiosyncratic innovation (residual) is extracted as the one-step-ahead prediction error before state updating:
-$$\epsilon_{i,t} = r_{i,t}^{std} - f_t^\top \hat{\beta}_{i,t|t-1}$$
+
+$$
+\epsilon_{i,t} = r_{i,t}^{\mathrm{std}} - f_t^\top \hat{\beta}_{i,t|t-1}
+$$
 
 For **Calibrated Kalman**, candidate process-noise scales $Q \in \{0, 10^{-4}, 10^{-2}\}$ are scored online over rolling trailing windows (84 days fitting, 42 days sequential out-of-sample validation) using Gaussian predictive log-likelihood:
-$$\ln \mathcal{L}(Q) = -\frac{1}{2} \sum_{\tau} \left( \ln(2\pi F_{i,\tau}) + \frac{\epsilon_{i,\tau}^2}{F_{i,\tau}} \right)$$
+
+$$
+\ln \mathcal{L}(Q) = -\frac{1}{2} \sum_{\tau} \left( \ln(2\pi F_{i,\tau}) + \frac{\epsilon_{i,\tau}^2}{F_{i,\tau}} \right)
+$$
+
 where $F_{i,\tau} = f_\tau^\top P_{i,\tau|\tau-1} f_\tau + R$ is the innovation covariance.
 
 ### 3. Mean-Reversion Alpha Signal
 The trading signal measures cumulative standardized residual pressure over $d = 5$ days normalized by rolling 20-day residual volatility:
-$$S_{i,t} = - \frac{\sum_{\tau=0}^{d-1} \epsilon_{i,t-\tau}}{\sigma_{\epsilon,i,t}}$$
+
+$$
+S_{i,t} = - \frac{\sum_{\tau=0}^{d-1} \epsilon_{i,t-\tau}}{\sigma_{\epsilon,i,t}}
+$$
+
 A negative residual deviation triggers a positive mean-reversion target, anticipating statistical convergence back to factor parity.
 
 ### 4. Portfolio Construction & Risk Constraints
-- **Disjoint Selection:** Every 20 trading days ($t_{\text{reb}}$), stocks are ranked by $S_{i,t}$. The top $n_{\text{side}} = 3$ stocks are selected for long positions, and the bottom $n_{\text{side}} = 3$ for short positions.
+- **Disjoint Selection:** Every 20 trading days ($t_{\mathrm{reb}}$), stocks are ranked by $S_{i,t}$. The top $n_{\mathrm{side}} = 3$ stocks are selected for long positions, and the bottom $n_{\mathrm{side}} = 3$ for short positions.
 - **Dollar Neutrality:** Aggregate long weight equals $+50\%$, and aggregate short weight equals $-50\%$ (net exposure $= 0.0$, gross leverage $= 1.0\times$ NAV).
 - **Risk Parity Sizing:** Under the risk-sized variant, capital is allocated inversely proportional to trailing 20-day asset return volatility, subject to a strict single-stock concentration cap of $\le 25\%$ NAV:
-  $$w_i = \text{sign}(S_i) \cdot \min\left(0.25, \, 0.50 \cdot \frac{\sigma_{i}^{-1}}{\sum_{j \in \text{side}} \sigma_{j}^{-1}}\right)$$
-- **Execution Lag & Drift Accounting:** Target weights generated at close $t$ are executed at $t+1$. Transaction fees apply to target turnover: $\text{Fee}_t = \text{cost\_bps} \cdot \sum_i |w_{i,t} - w_{i,t-1}|$.
+
+$$
+w_i = \operatorname{sgn}(S_i) \cdot \min\left(0.25, \, 0.50 \cdot \frac{\sigma_{i}^{-1}}{\sum_{j \in \mathrm{side}} \sigma_{j}^{-1}}\right)
+$$
+
+- **Execution Lag & Drift Accounting:** Target weights generated at close $t$ are executed at $t+1$. Transaction fees apply to target turnover: $\mathrm{Fee}_t = \mathrm{cost\_bps} \cdot \sum_i |w_{i,t} - w_{i,t-1}|$.
 
 ## Implementation & Reproducibility
 

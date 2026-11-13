@@ -272,7 +272,7 @@ def run(root):
                 'python': platform.python_version(),
                 'packages': {name: importlib.metadata.version(name) for name in ('numpy', 'pandas', 'yfinance')},
                 'price_request': {key: request[key] for key in ('download_start', 'download_end', 'universes')},
-                'evaluation': 'Historical matched calendar bounds (2018-07-09 to 2021-12-31); evaluated at Gross (0 bps) and Net (5 bps) execution costs.',
+                'evaluation': f'Historical matched calendar bounds ({start.date()} to {end.date()}); evaluated at Gross (0 bps) and Net (5 bps) execution costs.',
                 'accounting': config['accounting'], 'source': 'Yahoo Finance through yfinance'}
     (output / 'run.json').write_text(json.dumps(manifest, indent=2), encoding='utf-8')
     (artifacts_dir / 'run.json').write_text(json.dumps(manifest, indent=2), encoding='utf-8')

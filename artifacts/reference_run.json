@@ -1,0 +1,197 @@
+{
+  "config": {
+    "data": {
+      "repository": "b-enh/pca-stat-arb",
+      "revision": "6a24304205318de080b019e74ac766e7cdb18ff6",
+      "panels": {
+        "technology": {
+          "path": "data/returns.csv",
+          "sha256": "2f7f82322063042c3b70a63a1ad27e545bc2dd0037a94f78b1267e8c6c7fc5c7"
+        },
+        "financial": {
+          "path": "version_2/data/discovery/financial_returns.csv",
+          "sha256": "eea13a72252de3b709f04986e1fcbfad1ad9033eb24bceddfa962bb432ea6eaf"
+        },
+        "energy": {
+          "path": "version_2/data/discovery/energy_returns.csv",
+          "sha256": "7c1fc81c17af769b57a8ca09e8887089fedbdb3880a2e92754fe8f182f22b4e4"
+        },
+        "uk_external": {
+          "path": "version_2/data/external_uk_2017_2021/returns.csv",
+          "sha256": "e3a7b01a7fb98be02c1b07fdcba51b97567d0e194f1578cec03ecc379cc86365"
+        }
+      }
+    },
+    "model": {
+      "lookback": 126,
+      "refit_every": 10,
+      "variance_fraction": 0.55,
+      "q_fixed": 0.0001,
+      "q_grid": [
+        0,
+        0.0001,
+        0.01
+      ],
+      "r_grid": [
+        1
+      ],
+      "calibration_fraction": 0.6666666666666666
+    },
+    "portfolio": {
+      "residual_history": 252,
+      "pressure_days": 5,
+      "signal_vol_days": 20,
+      "rebalance_every": 20,
+      "names_per_side": 3,
+      "risk_window": 20,
+      "position_cap": 0.25
+    },
+    "cost_bps": [
+      0,
+      5,
+      10,
+      20
+    ],
+    "accounting": "lagged constant target weights; rebalance turnover only; no weight-drift trades",
+    "verification": {
+      "reference": "tests/fixtures/reference_metrics.csv",
+      "absolute_tolerance": 1e-09
+    },
+    "period_comparison": {
+      "download_start": "2017-01-01",
+      "download_end": "2026-08-08",
+      "samples": {
+        "2017-2021": {
+          "start": "2017-01-01",
+          "end": "2021-06-30"
+        }
+      },
+      "universes": {
+        "technology": [
+          "AAPL",
+          "ADBE",
+          "AMD",
+          "AMZN",
+          "CRM",
+          "CSCO",
+          "GOOGL",
+          "IBM",
+          "INTC",
+          "META",
+          "MSFT",
+          "NVDA",
+          "ORCL",
+          "QCOM",
+          "TXN"
+        ],
+        "financial": [
+          "AFL",
+          "AIG",
+          "ALL",
+          "AXP",
+          "C",
+          "CB",
+          "CME",
+          "GS",
+          "JPM",
+          "MET",
+          "MS",
+          "PNC",
+          "PRU",
+          "SCHW",
+          "USB"
+        ],
+        "energy": [
+          "APA",
+          "COP",
+          "CVX",
+          "DVN",
+          "EOG",
+          "FANG",
+          "HAL",
+          "KMI",
+          "MPC",
+          "OXY",
+          "PSX",
+          "SLB",
+          "VLO",
+          "WMB",
+          "XOM"
+        ],
+        "uk_external": [
+          "AZN.L",
+          "HSBA.L",
+          "BP.L",
+          "ULVR.L",
+          "GSK.L",
+          "DGE.L",
+          "RIO.L",
+          "BATS.L",
+          "LSEG.L",
+          "REL.L",
+          "NG.L",
+          "VOD.L",
+          "BARC.L",
+          "LLOY.L",
+          "TSCO.L"
+        ]
+      }
+    }
+  },
+  "config_sha256": "b4cf99a1fb9c40e0a5269b890fec14dccfc9f22342809579517d8dc541a78df8",
+  "python": "3.14.7",
+  "packages": {
+    "numpy": "2.5.4",
+    "pandas": "3.1.1",
+    "matplotlib": "3.11.2",
+    "pyarrow": "26.0.1"
+  },
+  "data": [
+    {
+      "universe": "technology",
+      "source_url": "https://raw.githubusercontent.com/b-enh/pca-stat-arb/6a24304205318de080b019e74ac766e7cdb18ff6/data/returns.csv",
+      "sha256": "2f7f82322063042c3b70a63a1ad27e545bc2dd0037a94f78b1267e8c6c7fc5c7",
+      "stocks": 15,
+      "observations": 1003,
+      "start": "2022-08-09",
+      "end": "2026-08-07"
+    },
+    {
+      "universe": "financial",
+      "source_url": "https://raw.githubusercontent.com/b-enh/pca-stat-arb/6a24304205318de080b019e74ac766e7cdb18ff6/version_2/data/discovery/financial_returns.csv",
+      "sha256": "eea13a72252de3b709f04986e1fcbfad1ad9033eb24bceddfa962bb432ea6eaf",
+      "stocks": 15,
+      "observations": 1258,
+      "start": "2017-01-04",
+      "end": "2021-12-31"
+    },
+    {
+      "universe": "energy",
+      "source_url": "https://raw.githubusercontent.com/b-enh/pca-stat-arb/6a24304205318de080b019e74ac766e7cdb18ff6/version_2/data/discovery/energy_returns.csv",
+      "sha256": "7c1fc81c17af769b57a8ca09e8887089fedbdb3880a2e92754fe8f182f22b4e4",
+      "stocks": 15,
+      "observations": 1258,
+      "start": "2017-01-04",
+      "end": "2021-12-31"
+    },
+    {
+      "universe": "uk_external",
+      "source_url": "https://raw.githubusercontent.com/b-enh/pca-stat-arb/6a24304205318de080b019e74ac766e7cdb18ff6/version_2/data/external_uk_2017_2021/returns.csv",
+      "sha256": "e3a7b01a7fb98be02c1b07fdcba51b97567d0e194f1578cec03ecc379cc86365",
+      "stocks": 15,
+      "observations": 1264,
+      "start": "2017-01-04",
+      "end": "2021-12-31"
+    }
+  ],
+  "reference_verified": true,
+  "evaluation": "Previously inspected historical panels; no new holdout. Panel periods differ.",
+  "accounting": "Constant daily target weights with one-day lag. Costs on target-weight changes only; holding drift and maintenance turnover are omitted.",
+  "limitations": [
+    "Not a self-financing execution simulation",
+    "Stock-selection and survivorship bias possible",
+    "No borrow fees, financing, short availability or impact",
+    "Dollar neutral, not factor neutral",
+    "Headline metrics include the archived initial flat period"
+  ]
+}

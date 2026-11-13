@@ -117,7 +117,9 @@ def run(root, verify=False):
         print(f'Reference verified: {len(comparison)} rows, 8 measures per row.', flush=True)
     output = root / 'artifacts'
     output.mkdir(parents=True, exist_ok=True)
-    summary.to_csv(output / 'metrics.csv', index=False)
+    summary.to_csv(output / 'reference_metrics.csv', index=False)
+    if not verify:
+        summary.to_csv(output / 'metrics.csv', index=False)
     pd.concat(calibration, ignore_index=True).to_csv(output / 'calibration.csv', index=False)
     daily.to_parquet(output / 'daily_returns.parquet', index=False)
     pd.concat(holdings, ignore_index=True).to_parquet(output / 'holdings.parquet', index=False)
@@ -134,7 +136,9 @@ def run(root, verify=False):
                                 'No borrow fees, financing, short availability or impact',
                                 'Dollar neutral, not factor neutral',
                                 'Headline metrics include the archived initial flat period']}
-    (output / 'run.json').write_text(json.dumps(manifest, indent=2) + '\n', encoding='utf-8')
+    (output / 'reference_run.json').write_text(json.dumps(manifest, indent=2) + '\n', encoding='utf-8')
+    if not verify:
+        (output / 'run.json').write_text(json.dumps(manifest, indent=2) + '\n', encoding='utf-8')
     print('\n=== Frozen-Sample Reference Summary (Gross vs Net 5 bps) ===', flush=True)
     disp = summary[summary.cost_bps.isin([0, 5]) & summary.variant.isin(['Fixed Kalman / equal', 'Calibrated Kalman / equal'])][[
         'universe', 'variant', 'cost_bps', 'sharpe', 'cagr', 'max_drawdown']].round(6)

@@ -215,7 +215,7 @@
       ]
     }
   },
-  "evaluation": "Historical matched calendar bounds (2018-07-09 to 2021-12-31); evaluated at Gross (0 bps) and Net (5 bps) execution costs.",
+  "evaluation": "Historical matched calendar bounds (2018-07-09 to 2021-06-30); evaluated at Gross (0 bps) and Net (5 bps) execution costs.",
   "accounting": "lagged constant target weights; rebalance turnover only; no weight-drift trades",
   "source": "Yahoo Finance through yfinance"
 }

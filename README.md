@@ -1,6 +1,6 @@
 # PCA and Kalman Statistical Arbitrage: Dynamic Residual Reversal & Risk Sizing
 
-Cross-sectional statistical arbitrage research across liquid equity universes spanning distinct market sectors (UK Large-Caps, US Financials, US Energy). The study evaluates residual mean-reversion by comparing rolling correlation PCA, dynamic Kalman-filtered factor beta estimation, and inverse-volatility risk parity sizing under realistic institutional execution costs (**Gross** and **Net 5 bps**).
+Cross-sectional statistical arbitrage research across liquid equity universes spanning distinct market sectors (UK Large-Caps, US Financials, US Energy). The study evaluates residual mean-reversion by comparing rolling correlation PCA, dynamic Kalman-filtered factor beta estimation, and inverse-volatility risk parity sizing under realistic institutional execution costs (**Gross 0 bps** and **Net 5 bps**).
 
 ## Objective & Key Achievements
 
@@ -8,7 +8,7 @@ Cross-sectional statistical arbitrage research across liquid equity universes sp
 The objective of this study is to engineer and evaluate an institutional-grade cross-sectional statistical arbitrage (stat arb) strategy on equity residuals, addressing the classical failure modes of static multi-factor models during regime shifts. By decomposing asset returns via rolling PCA factor extraction, tracking time-varying systematic factor exposures $\beta_{i,t}$ using an adaptive state-space Kalman filter with sequential Gaussian likelihood calibration ($Q$), and executing dollar-neutral long/short mean-reversion portfolios on normalized residual pressure, the model isolates idiosyncratic alpha while ensuring strict risk controls and drawdown containment during macro stress.
 
 ### Key Achievements
-- **Outstanding Standalone Compounding (3-Year Walk-Forward Horizon):** Compounded capital across the 3-year active trading window (9 July 2018 to 30 June 2021, 754 trading days):
+- **Outstanding Standalone Compounding (3-Year Walk-Forward Horizon):** Compounded capital across the 3-year active trading window (9 July 2018 to 30 June 2021, 754 sessions for UK Large-Caps, 751 sessions for US Financials and Energy due to UK bank holiday calendar differences):
   - **UK Equities:** **+51.8% gross (+47.3% net 5 bps)** compounding with an annualized Sharpe ratio of **1.48 Gross / 1.38 Net** (CAGR: **+15.0% gross / +13.8% net**).
   - **Financials (US):** **+40.3% gross (+35.9% net 5 bps)** compounding with an annualized Sharpe ratio of **1.29 Gross / 1.17 Net** under Fixed Kalman (rising to **1.35 Gross / 1.23 Net** with risk-parity sizing), significantly outperforming static PCA (1.10 Gross / 0.98 Net).
   - **Energy (US):** **+39.7% gross (+35.4% net 5 bps)** compounding with an annualized Sharpe ratio of **0.84 Gross / 0.77 Net** under Calibrated Kalman, outperforming static PCA (0.64 Gross / 0.57 Net).
@@ -19,7 +19,7 @@ The objective of this study is to engineer and evaluate an institutional-grade c
 
 ---
 
-The recorded active trading period covers liquid 15-stock universes from **9 July 2018 to 30 June 2021** (754 matched trading days, 36 continuous months), initialized after a 252-day warmup window. All figures are 100% reproducible via `python -m equity_stat_arb.period_comparison`.
+The recorded active trading period covers liquid 15-stock universes from **9 July 2018 to 30 June 2021** (754 sessions for UK Large-Caps, 751 sessions for US Financials and Energy), initialized after a 252-day warmup window. All figures are 100% reproducible via `python -m equity_stat_arb.period_comparison`.
 
 ### Annualized Sharpe Ratios: Net 5 bps (Gross 0 bps in parentheses)
 
@@ -129,15 +129,29 @@ $$
 A negative residual deviation triggers a positive mean-reversion target, anticipating statistical convergence back to factor parity.
 
 ### 4. Portfolio Construction & Risk Constraints
-- **Disjoint Selection:** Every 20 trading days ($t_{\mathrm{reb}}$), stocks are ranked by $S_{i,t}$. The top $n_{\mathrm{side}} = 3$ stocks are selected for long positions, and the bottom $n_{\mathrm{side}} = 3$ for short positions.
-- **Dollar Neutrality:** Aggregate long weight equals $+50\%$, and aggregate short weight equals $-50\%$ (net exposure $= 0.0$, gross leverage $= 1.0\times$ NAV).
-- **Risk Parity Sizing:** Under the risk-sized variant, capital is allocated inversely proportional to trailing 20-day asset return volatility, subject to a strict single-stock concentration cap of $\le 25\%$ NAV:
+- **Cross-Sectional Ranking:** Every 20 trading days ($t_{\mathrm{reb}}$), stocks in the 15-asset universe are sorted by standardized residual score $S_{i,t}$. The top $n_{\mathrm{side}} = 3$ stocks form the long basket $\mathrm{Top}(3)$, and the bottom $n_{\mathrm{side}} = 3$ form the short basket $\mathrm{Bottom}(3)$.
+- **Dollar Neutrality:** Total long allocation equals $+50\%$, and total short allocation equals $-50\%$ (net exposure $= 0.0$, gross leverage $= 1.0\times$ NAV).
+- **Equal-Weighted Sizing:**
 
 $$
-w_i = \mathrm{sgn}(S_i) \cdot \min\left(0.25, \, 0.50 \cdot \frac{\sigma_{i}^{-1}}{\sum_{j \in \mathrm{side}} \sigma_{j}^{-1}}\right)
+w_i = \begin{cases}
++\frac{0.50}{n_{\mathrm{side}}} & \text{for } i \in \mathrm{Top}(n_{\mathrm{side}}) \\
+-\frac{0.50}{n_{\mathrm{side}}} & \text{for } i \in \mathrm{Bottom}(n_{\mathrm{side}}) \\
+0 & \text{otherwise}
+\end{cases}
 $$
 
-- **Execution Lag & Drift Accounting:** Target weights generated at close $t$ are executed at $t+1$. Transaction fees apply to target turnover: $\mathrm{Fee}_t = \mathrm{cost\_bps} \cdot \sum_i |w_{i,t} - w_{i,t-1}|$.
+- **Inverse-Volatility Risk Sizing:** Under the risk-sized variant, capital is allocated inversely proportional to trailing 20-day return volatility $\sigma_i$. Weights are subject to a single-stock concentration cap of $\le 25\%$ NAV, with residual budget iteratively redistributed across uncapped names:
+
+$$
+w_i = \begin{cases}
++\mathrm{CappedAllocation}\left(\sigma_i^{-1}, \, \mathrm{budget}=0.50, \, \mathrm{cap}=0.25\right) & \text{for } i \in \mathrm{Top}(n_{\mathrm{side}}) \\
+-\mathrm{CappedAllocation}\left(\sigma_i^{-1}, \, \mathrm{budget}=0.50, \, \mathrm{cap}=0.25\right) & \text{for } i \in \mathrm{Bottom}(n_{\mathrm{side}}) \\
+0 & \text{otherwise}
+\end{cases}
+$$
+
+- **Rebalancing Timing & Turnover Accounting:** Target weights generated at market close $t$ determine portfolio holdings executed for the subsequent 20-day rebalancing cycle ($t \to t+1$, from close $t$ to close $t+1$), ensuring strict causality without lookahead bias. Transaction costs apply to rebalance turnover $\mathrm{Fee}_t = \mathrm{cost\_bps} \cdot \sum_i |w_{i,t} - w_{i,t-20}|$ at each 20-day cycle, assuming constant target weights between cycles without intermediate drift-maintenance trades.
 
 ## Implementation & Reproducibility
 
@@ -151,8 +165,8 @@ python -m venv .venv
 python -m pip install -r requirements.txt
 python -m pip install -e '.[dev]'
 python -m pytest -q
-python -m equity_stat_arb.period_comparison
 python -m equity_stat_arb.pipeline --verify
+python -m equity_stat_arb.period_comparison
 ```
 
 Historical adjusted stock prices are cached locally in `data/period_comparison/` with SHA-256 integrity verification. All generated figures, metrics, and execution diagnostics are exported directly to `artifacts/`.

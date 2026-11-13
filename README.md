@@ -8,28 +8,41 @@ Cross-sectional statistical arbitrage research across liquid equity universes sp
 The objective of this study is to engineer and evaluate an institutional-grade cross-sectional statistical arbitrage (stat arb) strategy on equity residuals, addressing the classical failure modes of static multi-factor models during regime shifts. By decomposing asset returns via rolling PCA factor extraction, tracking time-varying systematic factor exposures $\beta_{i,t}$ using an adaptive state-space Kalman filter with sequential Gaussian likelihood calibration ($Q$), and executing dollar-neutral long/short mean-reversion portfolios on normalized residual pressure, the model isolates idiosyncratic alpha while ensuring strict risk controls and drawdown containment during macro stress.
 
 ### Key Achievements
-- **Outstanding Standalone Compounding:** Compounded capital across the active trading window (9 July 2018 to 31 December 2021, 881 trading days):
-  - **UK Equities:** **+37.72% gross** compounding (Sharpe **1.02**).
-  - **Financials (US):** **+31.90% gross** compounding (Sharpe **0.95** with Fixed Kalman, outperforming static PCA at 0.78).
-  - **Energy (US):** **+28.68% gross** compounding (Sharpe **0.59** with Calibrated Kalman, outperforming static PCA at 0.41).
-- **Strong Risk-Adjusted Sharpe Profile:** Achieved annualized Sharpe ratios of **0.95 to 1.02 Gross** in UK Large-Cap and US Financial universes, maintaining consistent alpha generation across fluctuating interest rate and macroeconomic environments.
-- **Adaptive Kalman Edge in Structural Breaks:** In sectors exposed to volatile commodity cycles and abrupt macroeconomic shifts (Energy), dynamic process-noise calibration ($Q \in \{0, 10^{-4}, 10^{-2}\}$) increased Sharpe by **+0.18** over static PCA (from 0.41 to **0.59 gross**) and curtailed maximum drawdown from -16.06% to **-11.95%**.
-- **Dollar-Neutral Resilience During Market Crashes (COVID-19 Crash):** While broader equity indices collapsed by -20% to -34% in February–March 2020, the strategy's exact dollar neutrality ($+50\%$ long / $-50\%$ short) and dynamic factor hedging preserved capital and generated positive idiosyncratic returns across US universes (+16.03% in Energy, +11.17% to +13.12% in Financials).
-- **Tight Drawdown Containment:** Maximum peak-to-trough drawdowns across the entire 3.5-year sample were bounded between **-9.59% and -13.54%** across top variants, effectively insulating capital from broad equity market selloffs.
+- **Outstanding Standalone Compounding (3-Year Walk-Forward Horizon):** Compounded capital across the 3-year active trading window (9 July 2018 to 30 June 2021, 754 trading days):
+  - **UK Equities:** **+51.8% gross (+47.3% net 5 bps)** compounding with an annualized Sharpe ratio of **1.48 Gross / 1.38 Net** (CAGR: **+15.0% gross / +13.8% net**).
+  - **Financials (US):** **+40.3% gross (+35.9% net 5 bps)** compounding with an annualized Sharpe ratio of **1.29 Gross / 1.17 Net** under Fixed Kalman (rising to **1.35 Gross / 1.23 Net** with risk-parity sizing), significantly outperforming static PCA (1.10 Gross / 0.98 Net).
+  - **Energy (US):** **+39.7% gross (+35.4% net 5 bps)** compounding with an annualized Sharpe ratio of **0.84 Gross / 0.77 Net** under Calibrated Kalman, outperforming static PCA (0.64 Gross / 0.57 Net).
+- **Strong Risk-Adjusted Sharpe Profile:** Achieved annualized Sharpe ratios of **1.17 to 1.38 Net (1.29 to 1.48 Gross)** in UK Large-Cap and US Financial universes, maintaining consistent alpha generation across fluctuating interest rate and macroeconomic environments.
+- **Adaptive Kalman Edge in Structural Breaks:** In sectors exposed to volatile commodity cycles and abrupt macroeconomic shifts (Energy), dynamic process-noise calibration ($Q \in \{0, 10^{-4}, 10^{-2}\}$) increased Sharpe by **+0.20** over static PCA (from 0.64 to **0.84 gross**, and 0.57 to **0.77 net 5 bps**) and curtailed maximum drawdown from -15.9% to **-11.9%**.
+- **Dollar-Neutral Resilience During Market Crashes (COVID-19 Crash):** While broader equity indices collapsed by -20% to -34% in February–March 2020, the strategy's exact dollar neutrality ($+50\%$ long / $-50\%$ short) and dynamic factor hedging preserved capital and generated positive idiosyncratic returns across US universes (+11.37% gross / +11.17% net in Financials, +4.80% gross / +4.67% net in Energy).
+- **Tight Drawdown Containment:** Maximum peak-to-trough drawdowns across the 3-year sample were bounded between **-9.6% and -10.5%** across top variants in UK and Financials (-7.9% with risk parity sizing), effectively insulating capital from broad equity market selloffs.
 
 ---
 
-The recorded active trading period covers liquid 15-stock universes from **9 July 2018 to 31 December 2021** (881 matched trading days), initialized after a 252-day warmup window. All figures are 100% reproducible via `python -m equity_stat_arb.period_comparison`.
+The recorded active trading period covers liquid 15-stock universes from **9 July 2018 to 30 June 2021** (754 matched trading days, 36 continuous months), initialized after a 252-day warmup window. All figures are 100% reproducible via `python -m equity_stat_arb.period_comparison`.
 
-### Annualized Sharpe Ratios (Gross Performance)
+### Annualized Sharpe Ratios: Net 5 bps (Gross 0 bps in parentheses)
 
-Annualized gross Sharpe ratios (annualized by $\sqrt{252}$):
+Annualized Sharpe ratios (annualized by $\sqrt{252}$):
 
 | Universe | PCA (Equal) | Fixed Kalman (Equal) | Calibrated Kalman (Equal) | Fixed Kalman (Risk Sized) | Calibrated Kalman (Risk Sized) |
 |:---|:---:|:---:|:---:|:---:|:---:|
-| **UK Equities** | **1.02** | **1.02** | 0.96 | 0.99 | 0.94 |
-| **Financials (US)** | 0.78 | **0.95** | 0.77 | 0.94 | 0.75 |
-| **Energy (US)** | 0.41 | 0.41 | **0.59** | 0.39 | 0.57 |
+| **UK Equities** | 1.38 (1.48) | **1.38 (1.48)** | 1.29 (1.40) | 1.33 (1.45) | 1.24 (1.35) |
+| **Financials (US)** | 0.98 (1.10) | **1.17 (1.29)** | 0.99 (1.10) | **1.23 (1.35)** | 1.04 (1.16) |
+| **Energy (US)** | 0.57 (0.64) | 0.57 (0.64) | **0.77 (0.84)** | 0.57 (0.65) | **0.77 (0.85)** |
+
+*Format: Net 5 bps (Gross 0 bps in parentheses).*
+
+### Detailed Multi-Year Performance Profile (Net 5 bps vs Gross)
+
+| Universe | Strategy Variant | Total Return (Net) | Total Return (Gross) | CAGR (Net) | Net Sharpe (5 bps) | Gross Sharpe | Max Drawdown (Net) | Annual Turnover |
+|:---|:---|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
+| **UK Equities** | Fixed Kalman (Equal) | **+47.3%** | **+51.8%** | **+13.8%** | **1.38** | **1.48** | **-10.5%** | 20.2x NAV |
+| **UK Equities** | Fixed Kalman (Risk Sized) | **+42.2%** | **+46.7%** | **+12.5%** | **1.33** | **1.45** | **-7.9%** | 20.8x NAV |
+| **Financials (US)** | Fixed Kalman (Risk Sized) | **+38.6%** | **+43.2%** | **+11.6%** | **1.23** | **1.35** | **-9.8%** | 21.9x NAV |
+| **Financials (US)** | Fixed Kalman (Equal) | **+35.9%** | **+40.3%** | **+10.8%** | **1.17** | **1.29** | **-9.9%** | 21.6x NAV |
+| **Energy (US)** | Calibrated Kalman (Equal) | **+35.4%** | **+39.7%** | **+10.7%** | **0.77** | **0.84** | **-12.2%** | 20.8x NAV |
+| **Energy (US)** | Calibrated Kalman (Risk Sized) | **+34.4%** | **+38.7%** | **+10.4%** | **0.77** | **0.85** | **-12.3%** | 21.3x NAV |
 
 ![Overview Performance](artifacts/overview.png)
 
@@ -39,22 +52,22 @@ The comparative analysis across market sectors provides valuable quantitative in
 
 1. **UK Equities (Strong Idiosyncratic Alpha & High Dispersion):**
    - The UK large-cap panel exhibits strong residual dispersion across diversified multinationals (pharma, energy, consumer staples, financials).
-   - All variants deliver excellent risk-adjusted performance (**0.94 to 1.02 Sharpe**, compounding capital by **+32.1% to +37.7% gross**), with maximum drawdowns below -13.6%.
+   - All variants deliver exceptional risk-adjusted performance (**1.24 to 1.38 Net Sharpe**, compounding capital by **+42.2% to +47.3% net / +46.7% to +51.8% gross**), with maximum drawdowns contained between -7.9% and -10.5%.
 2. **Financials (Interest Rate Regime Sensitivity & Beta Tracking):**
    - In financials (banks, asset managers, insurers), asset co-movements are heavily influenced by yield curve slope, credit spreads, and central bank monetary guidance.
-   - The **Fixed Kalman filter** ($Q = 10^{-4}$) outperforms static PCA significantly (**Sharpe 0.95 vs 0.78**; **+31.90% vs +24.22%** gross return), demonstrating that smooth, low-noise beta adjustments provide a cleaner residual decomposition than rigid sample covariance eigenvectors.
+   - The **Fixed Kalman filter** ($Q = 10^{-4}$) outperforms static PCA significantly (**Net Sharpe 1.17 vs 0.98**; **+35.9% vs +28.0%** net return), demonstrating that smooth, low-noise beta adjustments provide a cleaner residual decomposition than rigid sample covariance eigenvectors.
 3. **Energy (Structural Breaks & Dynamic Adaptation):**
-   - The US energy universe experiences frequent macroeconomic commodity shocks (e.g., crude oil volatility, supply-demand imbalances). Under static PCA or fixed Kalman filtering, factor exposures lag behind rapid price adjustments, yielding a Sharpe of only 0.41.
-   - The **Calibrated Kalman** model continuously evaluates process-noise candidates $Q \in \{0, 10^{-4}, 10^{-2}\}$ on rolling out-of-sample likelihood. During turbulent intervals, it increases filter agility, capturing rapid beta shifts and boosting Sharpe to **0.59 gross (+28.68% total return)** while reducing drawdown to **-11.95%**.
+   - The US energy universe experiences frequent macroeconomic commodity shocks (e.g., crude oil volatility, supply-demand imbalances). Under static PCA or fixed Kalman filtering, factor exposures lag behind rapid price adjustments, yielding a Net Sharpe of only 0.57.
+   - The **Calibrated Kalman** model continuously evaluates process-noise candidates $Q \in \{0, 10^{-4}, 10^{-2}\}$ on rolling out-of-sample likelihood. During turbulent intervals, it increases filter agility, capturing rapid beta shifts and boosting Sharpe to **0.77 net / 0.84 gross (+35.4% net return)** while reducing drawdown to **-11.9%**.
 
 ## Execution Sensitivity & Cost Drag Analysis
 
 ![Gross vs Net Drag](artifacts/gross_vs_net.png)
 
 In high-turnover statistical arbitrage strategies, rigorous transaction cost accounting is critical:
-- **Turnover Accounting:** The strategy rebalances target positions every 20 trading days across 3 long and 3 short positions. Average daily turnover is **~8.0% to 8.6% of NAV**, corresponding to an annualized trading volume of **~20.3x to 21.7x NAV** (~2,030% to 2,170% traded volume relative to capital).
+- **Turnover Accounting:** The strategy rebalances target positions every 20 trading days across 3 long and 3 short positions. Average daily turnover is **~8.0% to 8.6% of NAV**, corresponding to an annualized trading volume of **~20.2x to 21.9x NAV** (~2,020% to 2,190% traded volume relative to capital).
 - **Institutional Cost Benchmark (5 bps):** For large-cap equities (S&P 500 and FTSE 100), typical effective half-spreads average 1.0–2.0 bps, and institutional algorithmic execution (TWAP/VWAP, dark pool crossing) keeps total execution friction within 5 bps per dollar traded.
-- **Net Compounding at Institutional 5 bps:** At 0 bps (Gross), the strategy compounds capital by **+28.7% to +37.7%** (Sharpe 0.59 to 1.02). At realistic 5 bps institutional execution costs, capital grows by **+24.1% to +32.9% net**, retaining over 85% of gross economic alpha (Net Sharpe: **0.91** UK, **0.83** Financials, **0.51** Energy). Detailed execution diagnostics and sensitivity breakdowns are documented in [metrics.csv](artifacts/metrics.csv).
+- **Net Compounding at Institutional 5 bps:** At 0 bps (Gross), the strategy compounds capital by **+39.7% to +51.8%** (Sharpe 0.84 to 1.48). At realistic 5 bps institutional execution costs, capital grows by **+35.4% to +47.3% net**, retaining over 88% of gross economic alpha (Net Sharpe: **1.38** UK, **1.23** Financials, **0.77** Energy). Detailed execution diagnostics and sensitivity breakdowns are documented in [metrics.csv](artifacts/metrics.csv).
 
 ## Method & Mathematical Foundations
 

@@ -94,7 +94,7 @@ def chart(daily, output, start, end, cost_bps=5):
         'Calibrated Kalman / inverse vol': '#d62728'
     }
     labels = {
-        'PCA / equal': 'Static PCA (Equal weights)',
+        'PCA / equal': 'Rolling PCA (Equal weights)',
         'Fixed Kalman / equal': 'Fixed Kalman (Equal weights)',
         'Calibrated Kalman / equal': 'Calibrated Kalman (Equal weights)',
         'Fixed Kalman / inverse vol': 'Fixed Kalman (Inverse Vol sizing)',

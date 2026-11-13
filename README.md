@@ -13,7 +13,7 @@ The objective of this study is to engineer and evaluate an institutional-grade c
   - **Financials (US):** **+40.3% gross (+35.9% net 5 bps)** compounding with an annualized Sharpe ratio of **1.29 Gross / 1.17 Net** under Fixed Kalman (rising to **1.35 Gross / 1.23 Net** with risk-parity sizing), significantly outperforming static PCA (1.10 Gross / 0.98 Net).
   - **Energy (US):** **+39.7% gross (+35.4% net 5 bps)** compounding with an annualized Sharpe ratio of **0.84 Gross / 0.77 Net** under Calibrated Kalman, outperforming static PCA (0.64 Gross / 0.57 Net).
 - **Strong Risk-Adjusted Sharpe Profile:** Achieved annualized Sharpe ratios of **1.17 to 1.38 Net (1.29 to 1.48 Gross)** in UK Large-Cap and US Financial universes, maintaining consistent alpha generation across fluctuating interest rate and macroeconomic environments.
-- **Adaptive Kalman Edge in Structural Breaks:** In sectors exposed to volatile commodity cycles and abrupt macroeconomic shifts (Energy), dynamic process-noise calibration ($Q \in \{0, 10^{-4}, 10^{-2}\}$) increased Sharpe by **+0.20** over static PCA (from 0.64 to **0.84 gross**, and 0.57 to **0.77 net 5 bps**) and curtailed maximum drawdown from -15.9% to **-11.9%**.
+- **Adaptive Kalman Edge in Structural Breaks:** In sectors exposed to volatile commodity cycles and abrupt macroeconomic shifts (Energy), dynamic process-noise calibration ($Q \in \{0, 10^{-4}, 10^{-2}\}$) increased Sharpe by **+0.20** over static PCA (from 0.64 to **0.84 gross**, and 0.57 to **0.77 net 5 bps**) and curtailed maximum drawdown from -15.9% to **-12.2% net (-11.9% gross)**.
 - **Dollar-Neutral Resilience During Market Crashes (COVID-19 Crash):** While broader equity indices collapsed by -20% to -34% in February–March 2020, the strategy's exact dollar neutrality ($+50\%$ long / $-50\%$ short) and dynamic factor hedging preserved capital and generated positive idiosyncratic returns across US universes (+11.37% gross / +11.17% net in Financials, +4.80% gross / +4.67% net in Energy).
 - **Tight Drawdown Containment:** Maximum peak-to-trough drawdowns across the 3-year sample were bounded between **-9.6% and -10.5%** across top variants in UK and Financials (-7.9% with risk parity sizing), effectively insulating capital from broad equity market selloffs.
 
@@ -58,7 +58,7 @@ The comparative analysis across market sectors provides valuable quantitative in
    - The **Fixed Kalman filter** ($Q = 10^{-4}$) outperforms static PCA significantly (**Net Sharpe 1.17 vs 0.98**; **+35.9% vs +28.0%** net return), demonstrating that smooth, low-noise beta adjustments provide a cleaner residual decomposition than rigid sample covariance eigenvectors.
 3. **Energy (Structural Breaks & Dynamic Adaptation):**
    - The US energy universe experiences frequent macroeconomic commodity shocks (e.g., crude oil volatility, supply-demand imbalances). Under static PCA or fixed Kalman filtering, factor exposures lag behind rapid price adjustments, yielding a Net Sharpe of only 0.57.
-   - The **Calibrated Kalman** model continuously evaluates process-noise candidates $Q \in \{0, 10^{-4}, 10^{-2}\}$ on rolling out-of-sample likelihood. During turbulent intervals, it increases filter agility, capturing rapid beta shifts and boosting Sharpe to **0.77 net / 0.84 gross (+35.4% net return)** while reducing drawdown to **-11.9%**.
+   - The **Calibrated Kalman** model continuously evaluates process-noise candidates $Q \in \{0, 10^{-4}, 10^{-2}\}$ on rolling out-of-sample likelihood. During turbulent intervals, it increases filter agility, capturing rapid beta shifts and boosting Sharpe to **0.77 net / 0.84 gross (+35.4% net return)** while reducing drawdown to **-12.2% net (-11.9% gross)**.
 
 ## Execution Sensitivity & Cost Drag Analysis
 
@@ -151,7 +151,7 @@ w_i = \begin{cases}
 \end{cases}
 $$
 
-- **Rebalancing Timing & Turnover Accounting:** Target weights generated at market close $t$ determine portfolio holdings executed for the subsequent 20-day rebalancing cycle ($t \to t+1$, from close $t$ to close $t+1$), ensuring strict causality without lookahead bias. Transaction costs apply to rebalance turnover $\mathrm{Fee}_t = \mathrm{cost\_bps} \cdot \sum_i |w_{i,t} - w_{i,t-20}|$ at each 20-day cycle, assuming constant target weights between cycles without intermediate drift-maintenance trades.
+- **Rebalancing Timing & Turnover Accounting:** Target weights generated at market close $t$ determine portfolio holdings executed for the subsequent 20-day rebalancing cycle ($t \to t+1$, from close $t$ to close $t+1$), ensuring strict causality without lookahead bias. Transaction costs apply to rebalance turnover $\mathrm{Fee}_t = \frac{\mathrm{cost\_bps}}{10\,000} \sum_i |w_{i,t} - w_{i,t-20}|$ at each 20-day cycle, assuming constant target weights between cycles without intermediate drift-maintenance trades.
 
 ## Implementation & Reproducibility
 

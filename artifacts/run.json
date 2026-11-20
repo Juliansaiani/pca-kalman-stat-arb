@@ -140,11 +140,11 @@
     10,
     20
   ],
-  "python": "3.14.3",
+  "python": "3.14.7",
   "packages": {
-    "numpy": "2.4.3",
-    "pandas": "3.0.1",
-    "yfinance": "not-installed"
+    "numpy": "2.5.4",
+    "pandas": "3.1.1",
+    "yfinance": "1.8.0"
   },
   "price_request": {
     "download_start": "2017-01-01",

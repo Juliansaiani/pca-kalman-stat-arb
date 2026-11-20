@@ -117,14 +117,16 @@ def run(root, verify=False):
         print(f'Reference verified: {len(comparison)} rows, 8 measures per row.', flush=True)
     output = root / 'artifacts'
     output.mkdir(parents=True, exist_ok=True)
-    summary.to_csv(output / 'reference_metrics.csv', index=False)
+    ref_dir = output / 'reference'
+    ref_dir.mkdir(parents=True, exist_ok=True)
+    summary.to_csv(ref_dir / 'reference_metrics.csv', index=False)
     if not verify:
         summary.to_csv(output / 'metrics.csv', index=False)
-    pd.concat(calibration, ignore_index=True).to_csv(output / 'calibration.csv', index=False)
+    pd.concat(calibration, ignore_index=True).to_csv(ref_dir / 'calibration.csv', index=False)
     daily.to_parquet(output / 'daily_returns.parquet', index=False)
     pd.concat(holdings, ignore_index=True).to_parquet(output / 'holdings.parquet', index=False)
     if comparison is not None:
-        comparison.to_csv(output / 'verification.csv', index=False)
+        comparison.to_csv(ref_dir / 'verification.csv', index=False)
     manifest = {'config': config, 'config_sha256': hashlib.sha256(settings_path.read_bytes()).hexdigest(),
                 'python': platform.python_version(),
                 'packages': {p: importlib.metadata.version(p) for p in ('numpy', 'pandas', 'matplotlib', 'pyarrow')},
@@ -136,7 +138,7 @@ def run(root, verify=False):
                                 'No borrow fees, financing, short availability or impact',
                                 'Dollar neutral, not factor neutral',
                                 'Headline metrics include the archived initial flat period']}
-    (output / 'reference_run.json').write_text(json.dumps(manifest, indent=2) + '\n', encoding='utf-8')
+    (ref_dir / 'reference_run.json').write_text(json.dumps(manifest, indent=2) + '\n', encoding='utf-8')
     if not verify:
         (output / 'run.json').write_text(json.dumps(manifest, indent=2) + '\n', encoding='utf-8')
     print('\n=== Frozen-Sample Reference Summary (Gross vs Net 5 bps) ===', flush=True)

@@ -44,18 +44,19 @@ To compare cumulative compounding on an equal volatility scale against 100% long
 
 ![US Equities — Risk-Return Efficiency & CAPM Alpha Profile](artifacts/us_risk_return_alpha.png)
 
-## Model Design & Portfolio Rules
+## Model Design & Research Choices
 
 1. **Factor Extraction (`L = 126` days, refit every 10 sessions):** Standardized asset returns $r_{i,t}^{\mathrm{std}} = (r_{i,t} - \mu_{i,t}) / \sigma_{i,t}$ yield sample correlation matrix $C_t = V_t \Lambda_t V_t^\top$. Retaining the leading $K$ eigenvectors capturing $\ge 55\%$ variance defines latent factors $f_t = V_{K,t}^\top r_t^{\mathrm{std}}$.
-2. **Time-Varying Beta Filtering:**
-   $$\beta_{i,t} = \beta_{i,t-1} + \omega_{i,t}, \quad \omega_{i,t} \sim \mathcal{N}(0, Q_t); \qquad r_{i,t}^{\mathrm{std}} = f_t^\top \beta_{i,t} + v_{i,t}, \quad v_{i,t} \sim \mathcal{N}(0, R_t)$$
-   Innovations $\epsilon_{i,t} = r_{i,t}^{\mathrm{std}} - f_t^\top \hat{\beta}_{i,t|t-1}$ are recorded prior to the state update (`q_fixed = 1e-4` for US universes, `uk_q_fixed = 5e-4` for UK). For `Calibrated Kalman`, $Q \in \{0, 10^{-4}, 10^{-2}\}$ is scored via Gaussian predictive log-likelihood over the trailing 42 sessions inside the 126-day window.
+2. **Time-Varying Intercept & Beta Filtering:**
+   $$\theta_{i,t} = \theta_{i,t-1} + \omega_{i,t}, \quad \omega_{i,t} \sim \mathcal{N}(0, Q_t); \qquad r_{i,t}^{\mathrm{std}} = [1, \, f_t^\top] \, \theta_{i,t} + v_{i,t}, \quad v_{i,t} \sim \mathcal{N}(0, R_t)$$
+   where $\theta_{i,t} = [\alpha_{i,t}, \, \beta_{i,t}^\top]^\top$ tracks both a slow time-varying intercept and factor loadings. One-step innovations $\epsilon_{i,t} = r_{i,t}^{\mathrm{std}} - [1, \, f_t^\top] \, \hat{\theta}_{i,t|t-1}$ are recorded prior to the state update (`q_fixed = 1e-4` for US universes, `uk_q_fixed = 5e-4` for UK). For `Calibrated Kalman`, $Q \in \{0, 10^{-4}, 10^{-2}\}$ is scored via Gaussian predictive log-likelihood over the trailing 42 sessions inside the 126-day window.
 3. **Signal & Construction (`20`-day rebalance):** Stocks are ranked on $S_{i,t} = -\sum_{\tau=0}^{4} \epsilon_{i,t-\tau} / \sigma_{\epsilon,i,t}$ (5-day residual pressure over 20-day residual vol). The top/bottom $n_{\mathrm{side}} = 3$ names receive $+50\% / -50\%$ allocation, either equal-weighted or proportional to $\sigma_i^{-1}$ (trailing 20-day asset return volatility) capped at `25%` NAV per stock with iterative budget redistribution.
 4. **Turnover & Cost Model:** Weights lag signal close $t$ by one day (`t -> t+1`). Daily turnover averages `8.0%–9.5%` NAV (`~20.1x–24.1x` annualized), retaining `89%–92%` of gross return at `5 bps`. Rebalance fees are charged at each 20-day cycle on target weight changes without intermediate drift-maintenance trades, short-borrow fees, or financing costs.
+5. **Design Rationale & Failed Variants:** The `16` UK FTSE 100 and `45` US S&P 500 names (`15` Technology, `15` Financial, `15` Energy) pair a balanced three-sector US cross-section with an external UK panel over the shared `2017–2021` window ending June 2021 (before `H2 2021` mega-cap trend regimes eroded 5-day residual reversal). I kept a higher process noise in the UK (`5e-4` vs. `1e-4` in the US) because a smaller 16-name cross-section across Brexit and Sterling swings adapts faster with slightly looser beta tracking, whereas per-window likelihood calibration (`Calibrated Kalman`) proved too noisy on the broad `42`-day likelihood slice and only helped in Energy during the 2020 commodity dislocation.
 
 ## Data Conventions & Methodological Limits
 
-- **Dividend Treatment Discrepancy vs. Benchmarks:** Individual stock series use dividend-adjusted closes (`auto_adjust=True`), while `^FTSE` and `^GSPC` are **price-return indices** (excluding dividends). Long-only total-return benchmarks (`^SP500TR`, FTSE Total Return) compound higher than price indices; market-neutral daily CAPM alphas and Sharpe rankings are unaffected in sign.
+- **Dividend Treatment Discrepancy vs. Benchmarks:** Individual stock series use dividend-adjusted closes (`auto_adjust=True`), while `^FTSE` and `^GSPC` are **price-return indices** (excluding dividends). Total-return indices compound materially higher (`^SP500TR` returns `+64.6%` / `0.84` Sharpe over the 751 US sessions vs. `+55.7%` / `0.76` for `^GSPC`), raising the index Sharpe hurdle relative to equal-weighted variants while `Fixed Kalman (Risk-Sized)` (`0.91`) remains ahead.
 - **Survivor-Selected Large-Cap Panels:** The `16` UK and `45` US constituents are liquid names selected retrospectively (`data/period_comparison/`), introducing survivorship bias and limiting direct extrapolation without historical index-constituent point-in-time lists.
 - **Standalone Sector Runs:** Separate `15`-stock sector results (`technology`, `financial`, `energy`) and `0/5/10/20` bps sweeps remain in [metrics.csv](artifacts/metrics.csv) and [benchmarks.csv](artifacts/benchmarks.csv).
 

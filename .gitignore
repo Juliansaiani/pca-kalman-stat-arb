@@ -9,7 +9,7 @@ __pycache__/
 build/
 dist/
 artifacts/*.parquet
-artifacts/period_comparison/*.parquet
+artifacts/reference/
 artifacts/daily_returns.csv
 .env
 .local_tools/

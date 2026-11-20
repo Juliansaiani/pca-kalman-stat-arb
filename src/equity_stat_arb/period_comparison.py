@@ -150,7 +150,6 @@ def chart_universe_method_comparison(summary, bench_row, universe, uni_label, ac
     variants, short_names = _variant_specs()
     x = np.arange(len(variants))
     width = 0.56
-    winner_idx = 2  # Fixed Kalman / inverse vol
 
     sub_n = summary[(summary.universe == universe) & (summary.cost_bps == 5)]
     sub_g = summary[(summary.universe == universe) & (summary.cost_bps == 0)]
@@ -159,114 +158,78 @@ def chart_universe_method_comparison(summary, bench_row, universe, uni_label, ac
     sh_g = [float(sub_g[sub_g.variant == v]['sharpe'].values[0]) for v in variants]
     dd_n = [float(sub_n[sub_n.variant == v]['max_drawdown'].values[0]) * 100 for v in variants]
 
-    bar_colors = [accent_color if i == winner_idx else '#94a3b8' for i in range(len(variants))]
-    bar_alphas = [0.95 if i == winner_idx else 0.72 for i in range(len(variants))]
-    bar_edges = ['#d4af37' if i == winner_idx else '#64748b' for i in range(len(variants))]
-    bar_lws = [2.2 if i == winner_idx else 0.9 for i in range(len(variants))]
-
     plt.style.use('default')
-    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(14.8, 5.8))
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(14.8, 5.6))
 
-    # Left Panel: Sharpe Ratio (Net 5 bps bars + Gross 0 bps diamonds + PCA -> Winner delta callout)
+    # Left Panel: Sharpe Ratio (Net 5 bps bars + Gross 0 bps diamonds)
     bars1 = ax1.bar(x, sh_n, width)
     for idx, bar in enumerate(bars1):
-        bar.set_facecolor(bar_colors[idx])
-        bar.set_alpha(bar_alphas[idx])
-        bar.set_edgecolor(bar_edges[idx])
-        bar.set_linewidth(bar_lws[idx])
+        bar.set_facecolor(accent_color)
+        bar.set_alpha(0.82)
+        bar.set_edgecolor(accent_dark)
+        bar.set_linewidth(1.1)
 
     for i in range(len(variants)):
-        is_w = (i == winner_idx)
-        edge_d = accent_dark if is_w else '#334155'
-        ax1.scatter(x[i], sh_g[i], marker='D', s=64 if is_w else 48, facecolor='white', edgecolor=edge_d, linewidth=2.0 if is_w else 1.5, zorder=5)
-        ax1.text(x[i], sh_n[i] * 0.55, f'Net\n{sh_n[i]:.2f}', ha='center', va='center', fontsize=9.2 if is_w else 8.6, fontweight='bold', color='white')
-        ax1.text(x[i], sh_g[i] + 0.035, f'{sh_g[i]:.2f}', ha='center', va='bottom', fontsize=9.0 if is_w else 8.4, fontweight='bold', color=edge_d)
-
-    # Progression highlight arrow & delta badge from Rolling PCA (0) to Fixed Kalman Risk-Sized (2)
-    d_sh_n = round(sh_n[winner_idx], 2) - round(sh_n[0], 2)
-    d_sh_g = round(sh_g[winner_idx], 2) - round(sh_g[0], 2)
-    y_arrow = max(sh_g[0], sh_g[winner_idx]) + 0.14
-    ax1.annotate('', xy=(x[winner_idx], y_arrow), xytext=(x[0], y_arrow),
-                 arrowprops=dict(arrowstyle='->', color=accent_dark, lw=1.8, shrinkA=4, shrinkB=4))
-    ax1.text((x[0] + x[winner_idx]) / 2, y_arrow + 0.025,
-             f'+{d_sh_n:.2f} Net (+{d_sh_g:.2f} Gross) Sharpe vs. PCA',
-             ha='center', va='bottom', fontsize=8.8, fontweight='bold', color=accent_dark,
-             bbox=dict(boxstyle='round,pad=0.25', facecolor='#f8fafc', edgecolor=accent_color, lw=1.0))
+        ax1.scatter(x[i], sh_g[i], marker='D', s=50, facecolor='white', edgecolor=accent_dark, linewidth=1.6, zorder=5)
+        ax1.text(x[i], sh_n[i] * 0.55, f'Net\n{sh_n[i]:.2f}', ha='center', va='center', fontsize=8.8, fontweight='bold', color='white')
+        ax1.text(x[i], sh_g[i] + 0.035, f'{sh_g[i]:.2f}', ha='center', va='bottom', fontsize=8.6, color=accent_dark)
 
     if bench_row:
         ax1.axhline(bench_row['sharpe'], color='#475569', linestyle='--', lw=1.3,
                     label=f"{bench_row['benchmark']} Sharpe ({bench_row['sharpe']:.2f})")
 
-    ax1.set_title('Annualized Sharpe Ratio (Net 5 bps Bars & Gross 0 bps Diamonds)', fontsize=11.5, fontweight='bold', pad=10)
+    ax1.set_title('Annualized Sharpe Ratio (Net 5 bps Bars & Gross 0 bps Diamonds)', fontsize=11.2, fontweight='bold', pad=10)
     ax1.set_ylabel('Annualized Sharpe Ratio', fontsize=10.2)
     ax1.set_xticks(x)
     ax1.set_xticklabels(short_names, fontsize=9.2)
-    for tick_idx, lbl in enumerate(ax1.get_xticklabels()):
-        if tick_idx == winner_idx:
-            lbl.set_fontweight('bold')
-            lbl.set_color(accent_dark)
-    y_top = max(sh_g) + 0.34
+    y_top = max(sh_g) + 0.22
     y_bot = min(-0.12, bench_row['sharpe'] - 0.10) if bench_row else -0.05
     ax1.set_ylim(y_bot, y_top)
     ax1.axhline(0, color='black', lw=0.7, alpha=0.6)
     ax1.grid(True, axis='y', linestyle='--', alpha=0.3)
     ax1.spines[['top', 'right']].set_visible(False)
     leg_elems1 = [
-        Patch(facecolor=accent_color, edgecolor='#d4af37', linewidth=1.8, label='Fixed Kalman (Risk-Sized — Best)'),
-        Patch(facecolor='#94a3b8', alpha=0.75, edgecolor='#64748b', label='Comparison Models (Net 5 bps)'),
-        Line2D([0], [0], marker='D', color='none', markerfacecolor='white', markeredgecolor=accent_dark, markeredgewidth=1.8, markersize=7, label='Gross (0 bps) Sharpe'),
+        Patch(facecolor=accent_color, alpha=0.82, edgecolor=accent_dark, linewidth=1.1, label='Net (5 bps) Sharpe'),
+        Line2D([0], [0], marker='D', color='none', markerfacecolor='white', markeredgecolor=accent_dark, markeredgewidth=1.6, markersize=6.5, label='Gross (0 bps) Sharpe'),
     ]
     if bench_row:
         leg_elems1.append(Line2D([0], [0], color='#475569', linestyle='--', lw=1.3, label=f"{bench_row['benchmark']} ({bench_row['sharpe']:.2f})"))
-    ax1.legend(handles=leg_elems1, fontsize=8.2, loc='upper center', bbox_to_anchor=(0.5, -0.15), ncol=2, frameon=True, edgecolor='#dddddd')
+    ax1.legend(handles=leg_elems1, fontsize=8.4, loc='upper center', bbox_to_anchor=(0.5, -0.15), ncol=2, frameon=True, edgecolor='#dddddd')
 
     # Right Panel: Unlevered Maximum Drawdown (Net 5 bps)
     bars2 = ax2.bar(x, dd_n, width)
     for idx, bar in enumerate(bars2):
-        bar.set_facecolor(bar_colors[idx])
-        bar.set_alpha(bar_alphas[idx])
-        bar.set_edgecolor(bar_edges[idx])
-        bar.set_linewidth(bar_lws[idx])
-        is_w = (idx == winner_idx)
+        bar.set_facecolor(accent_color)
+        bar.set_alpha(0.82)
+        bar.set_edgecolor(accent_dark)
+        bar.set_linewidth(1.1)
         ax2.text(x[idx], dd_n[idx] - 0.7, f'{dd_n[idx]:.1f}%', ha='center', va='top',
-                 fontsize=9.2 if is_w else 8.4, fontweight='bold', color=accent_dark if is_w else '#334155')
-
-    dd_cut_pct = (1.0 - abs(dd_n[winner_idx]) / abs(dd_n[0])) * 100.0
-    y_dd_badge = min(dd_n) - 4.2
-    ax2.text(x[winner_idx], y_dd_badge, f'{dd_cut_pct:.0f}% Shallower\nMax DD vs. PCA', ha='center', va='top',
-             fontsize=8.6, fontweight='bold', color=accent_dark,
-             bbox=dict(boxstyle='round,pad=0.25', facecolor='#f8fafc', edgecolor=accent_color, lw=1.0))
+                 fontsize=8.6, color='#1e293b')
 
     if bench_row:
         ax2.axhline(bench_row['max_drawdown'] * 100, color='#475569', linestyle='--', lw=1.3,
                     label=f"{bench_row['benchmark']} Max DD ({bench_row['max_drawdown']:.1%})")
 
     ax2.axhline(0, color='black', lw=0.8)
-    ax2.set_title('Unlevered Maximum Drawdown (Net 5 bps — Shallower is Better)', fontsize=11.5, fontweight='bold', pad=10)
+    ax2.set_title('Unlevered Maximum Drawdown (Net 5 bps)', fontsize=11.2, fontweight='bold', pad=10)
     ax2.set_ylabel('Maximum Drawdown (%)', fontsize=10.2)
     ax2.yaxis.set_major_formatter(PercentFormatter(100, decimals=0))
     ax2.set_xticks(x)
     ax2.set_xticklabels(short_names, fontsize=9.2)
-    for tick_idx, lbl in enumerate(ax2.get_xticklabels()):
-        if tick_idx == winner_idx:
-            lbl.set_fontweight('bold')
-            lbl.set_color(accent_dark)
     dd_floor = min(-39.0, (bench_row['max_drawdown'] * 100 - 3.5) if bench_row else -30.0)
     ax2.set_ylim(dd_floor, 2.0)
     ax2.grid(True, axis='y', linestyle='--', alpha=0.3)
     ax2.spines[['top', 'right']].set_visible(False)
     leg_elems2 = [
-        Patch(facecolor=accent_color, edgecolor='#d4af37', linewidth=1.8, label='Fixed Kalman (Risk-Sized — Shallowest DD)'),
-        Patch(facecolor='#94a3b8', alpha=0.75, edgecolor='#64748b', label='Comparison Models (Net 5 bps)'),
+        Patch(facecolor=accent_color, alpha=0.82, edgecolor=accent_dark, linewidth=1.1, label='Strategy Max DD (Net 5 bps)'),
     ]
     if bench_row:
         leg_elems2.append(Line2D([0], [0], color='#475569', linestyle='--', lw=1.3, label=f"{bench_row['benchmark']} Max DD ({bench_row['max_drawdown']:.1%})"))
-    ax2.legend(handles=leg_elems2, fontsize=8.2, loc='upper center', bbox_to_anchor=(0.5, -0.15), ncol=2, frameon=True, edgecolor='#dddddd')
+    ax2.legend(handles=leg_elems2, fontsize=8.4, loc='upper center', bbox_to_anchor=(0.5, -0.15), ncol=2, frameon=True, edgecolor='#dddddd')
 
     fig.suptitle(
-        f'{uni_label} — Rolling PCA vs. Fixed Kalman (Risk-Sized) Method Comparison\n'
-        f'Dollar-Neutral Residual Reversal | Higher Sharpe & Reduced Drawdown via Adaptive Filtering + Volatility Sizing',
-        fontsize=12.4, fontweight='bold', y=1.03,
+        f'{uni_label} — Sharpe Ratio and Maximum Drawdown across Variants (Net 5 bps vs. Gross)',
+        fontsize=12.2, fontweight='bold', y=1.01,
     )
     fig.tight_layout()
     output = Path(output)
@@ -292,44 +255,31 @@ def chart_universe_risk_return_alpha(summary, bench_row, universe, uni_label, ac
         'Calibrated Kalman / equal': 'Calibrated Kalman (Eq)',
         'Calibrated Kalman / inverse vol': 'Calibrated Kalman (Risk)',
     }
-    winner_idx = 2
-
     sub_n = summary[(summary.universe == universe) & (summary.cost_bps == 5)]
     sub_g = summary[(summary.universe == universe) & (summary.cost_bps == 0)]
 
     plt.style.use('default')
-    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(14.8, 5.9))
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(14.8, 5.7))
 
     # Left Panel: Ex-Post Vol-Matched Return vs. Max DD Magnitude
-    pts = {}
     all_x, all_y = [], []
-    for i, v in enumerate(variants):
+    for v in variants:
         row = sub_n[sub_n.variant == v].iloc[0]
         dd_mag = abs(float(row['vm_max_drawdown'])) * 100.0
         ret_vm = float(row['vm_total_return']) * 100.0
-        pts[v] = (dd_mag, ret_vm)
         all_x.append(dd_mag)
         all_y.append(ret_vm)
-        is_w = (i == winner_idx)
-        ax1.scatter(dd_mag, ret_vm, s=165 if is_w else 80,
-                    color=accent_color if is_w else '#64748b',
+        ax1.scatter(dd_mag, ret_vm, s=90,
+                    color=accent_color,
                     marker='o' if universe == 'uk_external' else 's',
-                    edgecolor='#d4af37' if is_w else 'white', linewidth=2.2 if is_w else 1.0,
-                    zorder=6 if is_w else 4)
+                    edgecolor=accent_dark, linewidth=1.1,
+                    zorder=5)
         dx, dy, ha = scatter_offsets[v]
-        label_txt = f"{short_map[v]}\n({ret_vm:+.1f}%, DD -{dd_mag:.1f}%)" if is_w else f"{short_map[v]}\n({ret_vm:+.1f}%)"
+        label_txt = f"{short_map[v]}\n({ret_vm:+.1f}%, DD -{dd_mag:.1f}%)"
         ax1.annotate(
             label_txt, xy=(dd_mag, ret_vm), xytext=(dd_mag + dx, ret_vm + dy),
-            fontsize=8.6 if is_w else 8.0, fontweight='bold' if is_w else 'normal',
-            color=accent_dark if is_w else '#334155', ha=ha, va='center',
-            bbox=dict(boxstyle='round,pad=0.25', facecolor='#f8fafc', edgecolor=accent_color, lw=1.2) if is_w else None,
+            fontsize=8.1, color='#1e293b', ha=ha, va='center',
         )
-
-    for v_from, v_to in [('PCA / equal', 'Fixed Kalman / equal'), ('Fixed Kalman / equal', 'Fixed Kalman / inverse vol')]:
-        x0, y0 = pts[v_from]
-        x1, y1 = pts[v_to]
-        ax1.annotate('', xy=(x1, y1), xytext=(x0, y0),
-                     arrowprops=dict(arrowstyle='->', color=accent_dark, lw=1.8, ls='--', alpha=0.85, shrinkA=7, shrinkB=8), zorder=3)
 
     if bench_row:
         bx, by = abs(bench_row['max_drawdown']) * 100.0, bench_row['total_return'] * 100.0
@@ -348,7 +298,7 @@ def chart_universe_risk_return_alpha(summary, bench_row, universe, uni_label, ac
     x_pad = max((max(all_x) - min(all_x)) * 0.22, 4.5)
     y_pad = max((max(all_y) - min(all_y)) * 0.18, 12.0)
     ax1.axhline(0, color='black', lw=0.7, linestyle=':')
-    ax1.set_title('Vol-Matched Return vs. Max Drawdown (Better = Up & Left)', fontsize=11.5, fontweight='bold', pad=10)
+    ax1.set_title('Volatility-Matched Return vs. Max Drawdown', fontsize=11.2, fontweight='bold', pad=10)
     ax1.set_xlabel('Volatility-Matched Max Drawdown Magnitude (% |Max DD|)', fontsize=10.0)
     ax1.set_ylabel('Volatility-Matched Net Total Return (%, 5 bps)', fontsize=10.0)
     ax1.xaxis.set_major_formatter(PercentFormatter(100, decimals=0))
@@ -367,43 +317,35 @@ def chart_universe_risk_return_alpha(summary, bench_row, universe, uni_label, ac
 
     bars = ax2.bar(x, a_n, width)
     for i, bar in enumerate(bars):
-        is_w = (i == winner_idx)
-        bar.set_facecolor(accent_color if is_w else '#94a3b8')
-        bar.set_alpha(0.95 if is_w else 0.72)
-        bar.set_edgecolor('#d4af37' if is_w else '#64748b')
-        bar.set_linewidth(2.2 if is_w else 0.9)
-        edge_d = accent_dark if is_w else '#334155'
-        ax2.scatter(x[i], a_g[i], marker='D', s=62 if is_w else 46, facecolor='white', edgecolor=edge_d, linewidth=2.0 if is_w else 1.5, zorder=5)
+        bar.set_facecolor(accent_color)
+        bar.set_alpha(0.82)
+        bar.set_edgecolor(accent_dark)
+        bar.set_linewidth(1.1)
+        ax2.scatter(x[i], a_g[i], marker='D', s=48, facecolor='white', edgecolor=accent_dark, linewidth=1.6, zorder=5)
         ax2.text(x[i], a_n[i] * 0.55, f'+{a_n[i]:.1f}%\n(t={t_n[i]:.2f})', ha='center', va='center',
-                 fontsize=8.8 if is_w else 8.2, fontweight='bold', color='white')
+                 fontsize=8.4, fontweight='bold', color='white')
         ax2.text(x[i], a_g[i] + 0.35, f'+{a_g[i]:.1f}%', ha='center', va='bottom',
-                 fontsize=8.8 if is_w else 8.2, fontweight='bold', color=edge_d)
+                 fontsize=8.4, color=accent_dark)
 
     bench_name = bench_row['benchmark'] if bench_row else 'Market Index'
-    ax2.set_title(f'Annualized OLS CAPM Alpha vs. {bench_name} (Unlevered)', fontsize=11.5, fontweight='bold', pad=10)
+    ax2.set_title(f'Annualized OLS CAPM Alpha vs. {bench_name} (Unlevered)', fontsize=11.2, fontweight='bold', pad=10)
     ax2.set_ylabel("Annualized Jensen's Alpha (%)", fontsize=10.0)
     ax2.yaxis.set_major_formatter(PercentFormatter(100, decimals=0))
     ax2.set_xticks(x)
     ax2.set_xticklabels(short_names, fontsize=9.2)
-    for tick_idx, lbl in enumerate(ax2.get_xticklabels()):
-        if tick_idx == winner_idx:
-            lbl.set_fontweight('bold')
-            lbl.set_color(accent_dark)
     ax2.set_ylim(0, max(a_g) + 2.8)
     ax2.grid(True, axis='y', linestyle='--', alpha=0.3)
     ax2.spines[['top', 'right']].set_visible(False)
     leg_elems = [
-        Patch(facecolor=accent_color, edgecolor='#d4af37', linewidth=1.8, label='Fixed Kalman (Risk-Sized — Net 5 bps)'),
-        Patch(facecolor='#94a3b8', alpha=0.75, edgecolor='#64748b', label='Comparison Models (Net 5 bps)'),
-        Line2D([0], [0], marker='D', color='none', markerfacecolor='white', markeredgecolor=accent_dark, markeredgewidth=1.8, markersize=7, label='Gross (0 bps) CAPM Alpha'),
+        Patch(facecolor=accent_color, alpha=0.82, edgecolor=accent_dark, linewidth=1.1, label='Net (5 bps) CAPM Alpha'),
+        Line2D([0], [0], marker='D', color='none', markerfacecolor='white', markeredgecolor=accent_dark, markeredgewidth=1.6, markersize=6.5, label='Gross (0 bps) CAPM Alpha'),
     ]
-    ax2.legend(handles=leg_elems, fontsize=8.2, loc='upper center', bbox_to_anchor=(0.5, -0.15), ncol=2, frameon=True, edgecolor='#dddddd')
+    ax2.legend(handles=leg_elems, fontsize=8.4, loc='upper center', bbox_to_anchor=(0.5, -0.15), ncol=2, frameon=True, edgecolor='#dddddd')
 
     target_vol = bench_row['annual_volatility'] * 100 if bench_row else 20.0
     fig.suptitle(
-        f'{uni_label} — Risk-Return Efficiency (at {target_vol:.1f}% {bench_name} Vol) & CAPM Alpha\n'
-        f'Arrows Highlight Progression: Rolling PCA (Equal) → Fixed Kalman (Equal) → Fixed Kalman (Risk-Sized)',
-        fontsize=12.4, fontweight='bold', y=1.03,
+        f'{uni_label} — Volatility-Matched Risk-Return Profile ({target_vol:.1f}% {bench_name} Vol) and CAPM Alpha',
+        fontsize=12.2, fontweight='bold', y=1.01,
     )
     fig.tight_layout()
     output = Path(output)
@@ -420,8 +362,6 @@ def run(root):
     prices['us_global'] = pd.concat([prices['technology'], prices['financial'], prices['energy']], axis=1).dropna(how='any')
     benchmarks = load_index_benchmarks(root, request['download_start'], '2021-07-02')
     rows, histories, periods = [], [], []
-    output = root / 'artifacts/period_comparison'
-    output.mkdir(parents=True, exist_ok=True)
     artifacts_dir = root / 'artifacts'
     artifacts_dir.mkdir(parents=True, exist_ok=True)
 
@@ -529,10 +469,8 @@ def run(root):
 
     all_daily = pd.concat(histories, ignore_index=True)
 
-    summary.to_csv(output / 'metrics.csv', index=False)
     summary.to_csv(artifacts_dir / 'metrics.csv', index=False)
-    summary.to_csv(artifacts_dir / 'scores.csv', index=False)
-    all_daily.to_parquet(output / 'daily_returns.parquet', index=False)
+    all_daily.to_parquet(artifacts_dir / 'daily_returns.parquet', index=False)
 
     pkg_versions = {}
     for name in ('numpy', 'pandas', 'yfinance'):
@@ -549,7 +487,6 @@ def run(root):
                 'price_request': {key: request[key] for key in ('download_start', 'download_end', 'universes')},
                 'evaluation': f'Global Equities (UK & US) matched calendar bounds ({start.date()} to {end.date()}); evaluated at Gross (0 bps) and Net (5 bps) with CAPM alpha and index vol-matched leverage.',
                 'accounting': config['accounting'], 'source': 'Yahoo Finance through yfinance'}
-    (output / 'run.json').write_text(json.dumps(manifest, indent=2), encoding='utf-8')
     (artifacts_dir / 'run.json').write_text(json.dumps(manifest, indent=2), encoding='utf-8')
 
     print('\n=== Global Equities (UK & US) Summary: Gross (0 bps) vs Net (5 bps) ===', flush=True)
